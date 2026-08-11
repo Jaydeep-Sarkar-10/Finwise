@@ -1,6 +1,6 @@
-import { Bell, Plus } from "lucide-react";
+import { Bell, Plus, UserRound } from "lucide-react";
 
-function Topbar({ onAddTransaction }) {
+function Topbar({ onAddTransaction, onProfileClick }) {
   return (
     <header className="topbar">
       <div>
@@ -14,11 +14,23 @@ function Topbar({ onAddTransaction }) {
       </div>
 
       <div className="topbar-actions">
+
+        {/* Profile */}
+        <button
+          className="profile-btn"
+          onClick={onProfileClick}
+          aria-label="Profile"
+        >
+          <UserRound size={19} />
+        </button>
+
+        {/* Notifications */}
         <button className="notification-btn">
           <Bell size={19} />
           <span className="notification-dot"></span>
         </button>
 
+        {/* Add Transaction */}
         <button
           className="add-transaction-btn"
           onClick={onAddTransaction}
@@ -26,6 +38,7 @@ function Topbar({ onAddTransaction }) {
           <Plus size={18} />
           Add Transaction
         </button>
+
       </div>
     </header>
   );

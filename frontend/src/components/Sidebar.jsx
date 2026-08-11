@@ -8,11 +8,18 @@ import {
   Sparkles,
   Settings,
   Crown,
+  User,
 } from "lucide-react";
 
-function Sidebar() {
+function Sidebar({ user, onAuthClick }) {
+  const username = user?.username || "Sign Up";
+  const avatarLetter = user
+    ? username.charAt(0).toUpperCase()
+    : "J";
+
   return (
     <aside className="sidebar">
+
       {/* Logo */}
       <div className="logo">
         <div className="logo-icon">F</div>
@@ -73,20 +80,44 @@ function Sidebar() {
 
       {/* Bottom */}
       <div className="sidebar-bottom">
+
+        {/* Settings */}
         <a href="#" className="nav-item">
           <Settings size={19} />
           <span>Settings</span>
         </a>
 
-        <div className="profile">
-          <div className="avatar">J</div>
+        {/* Account */}
+        <div
+          className="profile"
+          onClick={user ? undefined : onAuthClick}
+          style={{ cursor: "pointer" }}
+        >
+
+          <div className="avatar">
+            {user ? (
+              avatarLetter
+            ) : (
+              <User size={17} />
+            )}
+          </div>
 
           <div className="profile-info">
-            <strong>Jaydeep Sarkar</strong>
-            <span>Personal Account</span>
+
+            <strong>
+              {user ? username : "Sign Up"}
+            </strong>
+
+            <span>
+              {user ? "Personal Account" : "Login to Finwise"}
+            </span>
+
           </div>
+
         </div>
+
       </div>
+
     </aside>
   );
 }
