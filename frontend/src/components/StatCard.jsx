@@ -1,27 +1,69 @@
-import { ArrowDown, ArrowUp, Wallet, PiggyBank } from "lucide-react";
+import {
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  PiggyBank,
+  Plus,
+} from "lucide-react";
 
-function StatCard({ title, amount, change, type }) {
+function StatCard({
+  title,
+  amount,
+  change,
+  type,
+  onAddSavings,
+}) {
   const icons = {
-    balance: <Wallet size={20} />,
-    income: <ArrowDown size={20} />,
-    expense: <ArrowUp size={20} />,
-    savings: <PiggyBank size={20} />,
+    balance: Wallet,
+    income: TrendingUp,
+    expense: TrendingDown,
+    savings: PiggyBank,
   };
 
+  const Icon = icons[type];
+
   return (
-    <div className="stat-card">
-      <div className="stat-card-top">
+    <div className={`stat-card ${type}`}>
+
+      {/* Top section */}
+      <div className="stat-top">
+
+        {/* Icon */}
         <div className={`stat-icon ${type}`}>
-          {icons[type]}
+          <Icon size={20} />
         </div>
 
-        <span className={`stat-change ${type}`}>
-          {change}
-        </span>
+        {/* Change */}
+        {change && (
+          <span className={`stat-change ${type}`}>
+            {change}
+          </span>
+        )}
+
+        {/* Savings + button */}
+        {type === "savings" && (
+          <button
+            className="add-savings-btn"
+            type="button"
+            onClick={onAddSavings}
+            title="Add Savings"
+          >
+            <Plus size={18} />
+          </button>
+        )}
+
       </div>
 
-      <p className="stat-title">{title}</p>
-      <h2 className="stat-amount">{amount}</h2>
+      {/* Title */}
+      <p className="stat-title">
+        {title}
+      </p>
+
+      {/* Amount */}
+      <h2 className="stat-amount">
+        {amount}
+      </h2>
+
     </div>
   );
 }

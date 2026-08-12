@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-function AddTransactionModal({ onClose }) {
+function AddTransactionModal({ onClose, onTransactionAdded }) {
   const [type, setType] = useState("expense");
 
   const [amount, setAmount] = useState("");
@@ -16,11 +16,20 @@ function AddTransactionModal({ onClose }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Get categories from Django
+  // =========================
+  // FETCH CATEGORIES
+  // =========================
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const token = localStorage.getItem("access");
+
+        if (!token) {
+          setError("Please login first.");
+          setLoadingCategories(false);
+          return;
+        }
 
         const response = await fetch(
           "http://127.0.0.1:8000/api/transactions/categories/",
@@ -36,9 +45,12 @@ function AddTransactionModal({ onClose }) {
         }
 
         const data = await response.json();
+
+        console.log("Categories received:", data);
+
         setCategories(data);
       } catch (error) {
-        console.error(error);
+        console.error("Category error:", error);
         setError("Could not load categories.");
       } finally {
         setLoadingCategories(false);
@@ -48,7 +60,10 @@ function AddTransactionModal({ onClose }) {
     fetchCategories();
   }, []);
 
-  // Submit transaction
+  // =========================
+  // SUBMIT TRANSACTION
+  // =========================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -58,6 +73,12 @@ function AddTransactionModal({ onClose }) {
     try {
       const token = localStorage.getItem("access");
 
+      if (!token) {
+        setError("Please login first.");
+        setSaving(false);
+        return;
+      }
+
       const transactionData = {
         amount: amount,
         type: type,
@@ -65,6 +86,8 @@ function AddTransactionModal({ onClose }) {
         description: description,
         date: date,
       };
+
+      console.log("Sending transaction:", transactionData);
 
       const response = await fetch(
         "http://127.0.0.1:8000/api/transactions/",
@@ -83,18 +106,26 @@ function AddTransactionModal({ onClose }) {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error(data);
-        throw new Error("Failed to create transaction");
+        console.error("Backend error:", data);
+
+        throw new Error(
+          data.detail || "Failed to add transaction."
+        );
       }
 
       console.log("Transaction created:", data);
 
-      // Close modal after successful submission
-      onClose();
+      if (onTransactionAdded) {
+        onTransactionAdded(data);
+      }
 
+      onClose();
     } catch (error) {
-      console.error(error);
-      setError("Could not save transaction. Please try again.");
+      console.error("Transaction error:", error);
+
+      setError(
+        error.message || "Something went wrong."
+      );
     } finally {
       setSaving(false);
     }
@@ -102,26 +133,36 @@ function AddTransactionModal({ onClose }) {
 
   return (
     <div className="modal-overlay">
+
       <div className="transaction-modal">
 
         {/* Header */}
+
         <div className="modal-header">
+
           <div>
             <h2>Add Transaction</h2>
-            <p>Record your income or expense</p>
+
+            <p>
+              Record your income or expense
+            </p>
           </div>
 
           <button
             className="close-btn"
             onClick={onClose}
+            type="button"
           >
             <X size={20} />
           </button>
+
         </div>
+
 
         <form onSubmit={handleSubmit}>
 
           {/* Income / Expense */}
+
           <div className="transaction-type">
 
             <button
@@ -150,11 +191,15 @@ function AddTransactionModal({ onClose }) {
 
           </div>
 
+
           {/* Amount */}
+
           <div className="form-group">
+
             <label>Amount</label>
 
             <div className="amount-input">
+
               <span>₹</span>
 
               <input
@@ -163,77 +208,106 @@ function AddTransactionModal({ onClose }) {
                 min="0"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) =>
+                  setAmount(e.target.value)
+                }
                 required
               />
+
             </div>
+
           </div>
 
+
           {/* Category */}
+
           <div className="form-group">
+
             <label>Category</label>
 
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) =>
+                setCategory(e.target.value)
+              }
               required
-              disabled={loadingCategories}
             >
+
               <option value="">
                 {loadingCategories
                   ? "Loading categories..."
                   : "Select category"}
               </option>
 
-              {categories.map((cat) => (
-                <option
-                  key={cat.id}
-                  value={cat.id}
-                >
-                  {cat.name}
-                </option>
-              ))}
+              {!loadingCategories &&
+                categories.map((cat) => (
+                  <option
+                    key={cat.id}
+                    value={cat.id}
+                  >
+                    {cat.name}
+                  </option>
+                ))}
+
             </select>
+
           </div>
 
+
           {/* Description */}
+
           <div className="form-group">
+
             <label>Description</label>
 
             <input
               type="text"
               placeholder="What was this transaction for?"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) =>
+                setDescription(e.target.value)
+              }
             />
+
           </div>
 
+
           {/* Date */}
+
           <div className="form-group">
+
             <label>Date</label>
 
             <input
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) =>
+                setDate(e.target.value)
+              }
               required
             />
+
           </div>
 
+
           {/* Error */}
+
           {error && (
             <p className="form-error">
               {error}
             </p>
           )}
 
+
           {/* Buttons */}
+
           <div className="modal-actions">
 
             <button
               type="button"
               className="cancel-btn"
               onClick={onClose}
+              disabled={saving}
             >
               Cancel
             </button>
@@ -251,7 +325,9 @@ function AddTransactionModal({ onClose }) {
           </div>
 
         </form>
+
       </div>
+
     </div>
   );
 }

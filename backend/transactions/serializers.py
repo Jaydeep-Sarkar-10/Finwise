@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Transaction
+from .models import Category, Transaction, Savings
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -22,3 +22,19 @@ class TransactionSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]
+
+
+class SavingsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Savings
+        fields = [
+            "id",
+            "amount",
+            "created_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "created_at",
+        ]

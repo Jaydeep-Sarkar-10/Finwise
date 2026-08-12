@@ -1486,3 +1486,150 @@ a {
   background: #fff0ef;
   border-color: #e9c2bf;
 }
+
+/* ========================= */
+/* STAT CARDS */
+/* ========================= */
+
+.stat-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e7ebe8;
+  border-radius: 18px;
+  padding: 24px;
+  min-height: 145px;
+  box-sizing: border-box;
+}
+
+
+/* ========================= */
+/* TOP SECTION */
+/* ========================= */
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+/* ========================= */
+/* ICON */
+/* ========================= */
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Balance */
+
+.stat-icon.balance {
+  background: #e8f6ed;
+  color: #287a43;
+}
+
+
+/* Income */
+
+.stat-icon.income {
+  background: #e8f6ed;
+  color: #287a43;
+}
+
+
+/* Expense */
+
+.stat-icon.expense {
+  background: #fff0ee;
+  color: #e05b4f;
+}
+
+
+/* Savings */
+
+.stat-icon.savings {
+  background: #f0ecff;
+  color: #7c5ce6;
+}
+
+
+/* ========================= */
+/* TITLE */
+/* ========================= */
+
+.stat-title {
+  margin-top: 17px;
+  margin-bottom: 7px;
+
+  color: #777f7a;
+  font-size: 14px;
+}
+
+
+/* ========================= */
+/* AMOUNT */
+/* ========================= */
+
+.stat-amount {
+  margin: 0;
+
+  font-size: 27px;
+  font-weight: 700;
+  color: #111817;
+}
+
+
+/* ========================= */
+/* CHANGE */
+/* ========================= */
+
+.stat-change {
+  padding: 5px 9px;
+  border-radius: 20px;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* ========================= */
+/* SAVINGS BUTTON */
+/* ========================= */
+
+.add-savings-btn {
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid #d8ddd9;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #287a43;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+
+.add-savings-btn:hover {
+  background: #e8f6ed;
+  border-color: #287a43;
+  transform: translateY(-1px);
+}
+
+
+.add-savings-btn:active {
+  transform: scale(0.95);
+}

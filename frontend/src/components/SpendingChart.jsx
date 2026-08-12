@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   ResponsiveContainer,
   AreaChart,
@@ -8,71 +10,325 @@ import {
   Tooltip,
 } from "recharts";
 
-const data = [
-  { month: "Jan", income: 42000, expense: 18000 },
-  { month: "Feb", income: 45000, expense: 21000 },
-  { month: "Mar", income: 48000, expense: 19000 },
-  { month: "Apr", income: 46000, expense: 24000 },
-  { month: "May", income: 52000, expense: 22000 },
-  { month: "Jun", income: 50000, expense: 20000 },
-];
 
-function SpendingChart() {
-  return (
-    <div className="chart-card spending-card">
-      <div className="chart-header">
-        <div>
-          <h3>Spending Overview</h3>
-          <p>Your income and expenses over time</p>
+function SpendingChart({ refreshTrigger }) {
+
+  const [data, setData] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState("");
+
+
+  // =========================
+  // FETCH SPENDING SUMMARY
+  // =========================
+
+  useEffect(() => {
+
+    const fetchSpendingSummary = async () => {
+
+      const token = localStorage.getItem("access");
+
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+
+      try {
+
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/transactions/spending-summary/",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch spending summary"
+          );
+        }
+
+
+        const result = await response.json();
+
+
+        const formattedData = result.map(
+          (item) => ({
+            date: item.date,
+            spending: Number(item.value),
+          })
+        );
+
+
+        setData(formattedData);
+
+
+      } catch (error) {
+
+        console.error(
+          "Spending summary error:",
+          error
+        );
+
+        setError(
+          "Could not load spending data."
+        );
+
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
+
+
+    fetchSpendingSummary();
+
+  }, [refreshTrigger]);
+
+
+  // =========================
+  // LOADING
+  // =========================
+
+  if (loading) {
+
+    return (
+      <div className="chart-card">
+
+        <div className="chart-header">
+
+          <div>
+            <h3>Spending Overview</h3>
+
+            <p>
+              Your spending activity
+            </p>
+          </div>
+
         </div>
 
-        <select className="chart-select">
-          <option>Last 6 months</option>
-          <option>Last 12 months</option>
-        </select>
+        <div
+          style={{
+            padding: "30px",
+            textAlign: "center",
+          }}
+        >
+          Loading...
+        </div>
+
+      </div>
+    );
+
+  }
+
+
+  // =========================
+  // ERROR
+  // =========================
+
+  if (error) {
+
+    return (
+      <div className="chart-card">
+
+        <div className="chart-header">
+
+          <div>
+            <h3>Spending Overview</h3>
+
+            <p>
+              Your spending activity
+            </p>
+          </div>
+
+        </div>
+
+        <div
+          style={{
+            padding: "30px",
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </div>
+
+      </div>
+    );
+
+  }
+
+
+  // =========================
+  // EMPTY STATE
+  // =========================
+
+  if (data.length === 0) {
+
+    return (
+      <div className="chart-card">
+
+        <div className="chart-header">
+
+          <div>
+            <h3>Spending Overview</h3>
+
+            <p>
+              Your spending activity
+            </p>
+          </div>
+
+        </div>
+
+        <div
+          style={{
+            padding: "30px",
+            textAlign: "center",
+          }}
+        >
+          No spending data yet.
+        </div>
+
+      </div>
+    );
+
+  }
+
+
+  return (
+
+    <div className="chart-card">
+
+
+      {/* ========================= */}
+      {/* HEADER */}
+      {/* ========================= */}
+
+      <div className="chart-header">
+
+        <div>
+
+          <h3>
+            Spending Overview
+          </h3>
+
+          <p>
+            Your spending activity
+          </p>
+
+        </div>
+
       </div>
 
-      <div className="chart-container">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+
+      {/* ========================= */}
+      {/* CHART */}
+      {/* ========================= */}
+
+      <div
+        style={{
+          width: "100%",
+          height: "280px",
+        }}
+      >
+
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+        >
+
+          <AreaChart
+            data={data}
+            margin={{
+              top: 10,
+              right: 10,
+              left: 0,
+              bottom: 0,
+            }}
+          >
+
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+            />
 
             <XAxis
-              dataKey="month"
-              axisLine={false}
-              tickLine={false}
+              dataKey="date"
+              tickFormatter={(date) => {
+
+                const formattedDate =
+                  new Date(date);
+
+                return formattedDate.toLocaleDateString(
+                  "en-IN",
+                  {
+                    day: "numeric",
+                    month: "short",
+                  }
+                );
+
+              }}
             />
 
             <YAxis
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(value) => `₹${value / 1000}k`}
+              tickFormatter={(value) =>
+                `₹${value}`
+              }
             />
 
             <Tooltip
-              formatter={(value) => `₹${value.toLocaleString()}`}
+              formatter={(value) =>
+                `₹${Number(
+                  value
+                ).toLocaleString("en-IN")}`
+              }
+
+              labelFormatter={(date) => {
+
+                const formattedDate =
+                  new Date(date);
+
+                return formattedDate.toLocaleDateString(
+                  "en-IN",
+                  {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  }
+                );
+
+              }}
             />
+
 
             <Area
               type="monotone"
-              dataKey="income"
+              dataKey="spending"
               stroke="#287a43"
-              fill="#e5f5e9"
+              fill="#c7dfce"
               strokeWidth={2}
             />
 
-            <Area
-              type="monotone"
-              dataKey="expense"
-              stroke="#d85b55"
-              fill="#fff0ef"
-              strokeWidth={2}
-            />
           </AreaChart>
+
         </ResponsiveContainer>
+
       </div>
+
+
     </div>
+
   );
+
 }
+
 
 export default SpendingChart;

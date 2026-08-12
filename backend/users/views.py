@@ -80,3 +80,4 @@ class GoogleLoginView(APIView):
                 },
                 status=status.HTTP_401_UNAUTHORIZED
             )
+
