@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 
-function RecentTransactions({ refreshTrigger }) {
+function RecentTransactions({ refreshTrigger, setCurrentPage}) {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -231,13 +231,15 @@ function RecentTransactions({ refreshTrigger }) {
         </div>
 
 
-        <button className="view-all-btn">
+        <button
+  className="view-all-btn"
+  onClick={() => setCurrentPage("transactions")}
+>
+  View all
 
-          View all
+  <ArrowUpRight size={14} />
 
-          <ArrowUpRight size={14} />
-
-        </button>
+</button>
 
       </div>
 

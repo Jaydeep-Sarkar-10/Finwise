@@ -9,6 +9,7 @@ import RecentTransactions from "./components/RecentTransactions";
 import AddTransactionModal from "./components/AddTransactionModal";
 import AuthModal from "./components/AuthModal";
 import Profile from "./components/Profile";
+import TransactionsPage from "./components/TransactionsPage";
 
 function App() {
   // =========================
@@ -294,34 +295,41 @@ function App() {
       {/* ========================= */}
 
       <Sidebar
-        user={user}
-        onAuthClick={() =>
-          setShowAuthModal(true)
-        }
-        onProfileClick={
-          handleProfileClick
-        }
-      />
+  user={user}
+  onAuthClick={() =>
+    setShowAuthModal(true)
+  }
+  currentPage={currentPage}
+  onNavigate={setCurrentPage}
+/>
 
       <main className="main-content">
 
         {/* ========================= */}
         {/* PROFILE PAGE */}
         {/* ========================= */}
+{currentPage === "profile" && user ? (
 
-        {currentPage === "profile" && user ? (
+  <Profile
+    user={user}
+    onLogout={handleLogout}
+    onBack={() =>
+      setCurrentPage("home")
+    }
+  />
 
-          <Profile
-            user={user}
-            onLogout={handleLogout}
-            onBack={() =>
-              setCurrentPage("home")
-            }
-          />
+) : currentPage === "transactions" ? (
 
-        ) : (
+  <TransactionsPage
+    onAddTransaction={() =>
+      setShowTransactionModal(true)
+    }
+    refreshTrigger={refreshTrigger}
+  />
 
-          <>
+) : (
+
+  <>
             {/* ========================= */}
             {/* TOPBAR */}
             {/* ========================= */}
@@ -441,6 +449,7 @@ function App() {
                 refreshTrigger={
                   refreshTrigger
                 }
+                setCurrentPage={setCurrentPage}
               />
 
             </section>
