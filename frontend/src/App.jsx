@@ -10,6 +10,7 @@ import AddTransactionModal from "./components/AddTransactionModal";
 import AuthModal from "./components/AuthModal";
 import Profile from "./components/Profile";
 import TransactionsPage from "./components/TransactionsPage";
+import CategoriesPage from "./components/CategoriesPage";
 
 function App() {
   // =========================
@@ -326,6 +327,10 @@ function App() {
     }
     refreshTrigger={refreshTrigger}
   />
+
+) : currentPage === "categories" ? (
+
+  <CategoriesPage />
 
 ) : (
 

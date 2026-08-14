@@ -36,27 +36,28 @@ urlpatterns = [
         TransactionDetailView.as_view(),
         name="transaction-detail",
     ),
+
     path(
-    "summary/",
-    FinancialSummaryView.as_view(),
-    name="financial-summary",
+        "summary/",
+        FinancialSummaryView.as_view(),
+        name="financial-summary",
     ),
 
     path(
-    "category-summary/",
-    CategorySpendingSummaryView.as_view(),
-    name="category-spending-summary",
+        "category-summary/",
+        CategorySpendingSummaryView.as_view(),
+        name="category-spending-summary",
     ),
 
     path(
-    "spending-summary/",
-    SpendingSummaryView.as_view(),
-    name="spending-summary",
+        "spending-summary/",
+        SpendingSummaryView.as_view(),
+        name="spending-summary",
     ),
 
     path(
-    "savings/",
-    SavingsListCreateView.as_view(),
-    name="savings-list-create",
+        "savings/",
+        SavingsListCreateView.as_view(),
+        name="savings-list-create",
     ),
 ]

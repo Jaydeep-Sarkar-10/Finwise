@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { createPortal } from "react-dom";
+
 import {
   Home,
   Receipt,
@@ -11,17 +14,29 @@ import {
   User,
 } from "lucide-react";
 
+
 function Sidebar({
   user,
   onAuthClick,
   currentPage,
   onNavigate,
 }) {
+
+  // =========================
+  // PREMIUM MODAL STATE
+  // =========================
+
+  const [showPremiumModal, setShowPremiumModal] =
+    useState(false);
+
+
   const username = user?.username || "Sign Up";
+
 
   const avatarLetter = user
     ? username.charAt(0).toUpperCase()
     : "J";
+
 
   return (
     <aside className="sidebar">
@@ -31,8 +46,15 @@ function Sidebar({
       ========================= */}
 
       <div className="logo">
-        <div className="logo-icon">F</div>
-        <span>Finwise</span>
+
+        <div className="logo-icon">
+          F
+        </div>
+
+        <span>
+          Finwise
+        </span>
+
       </div>
 
 
@@ -54,18 +76,27 @@ function Sidebar({
         <a
           href="#"
           className={`nav-item ${
-            currentPage === "home" ? "active" : ""
+            currentPage === "home"
+              ? "active"
+              : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("home");
             }
+
           }}
         >
+
           <Home size={19} />
-          <span>Home</span>
+
+          <span>
+            Home
+          </span>
+
         </a>
 
 
@@ -81,15 +112,22 @@ function Sidebar({
               : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("transactions");
             }
+
           }}
         >
+
           <Receipt size={19} />
-          <span>Transactions</span>
+
+          <span>
+            Transactions
+          </span>
+
         </a>
 
 
@@ -105,15 +143,22 @@ function Sidebar({
               : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("categories");
             }
+
           }}
         >
+
           <Tags size={19} />
-          <span>Categories</span>
+
+          <span>
+            Categories
+          </span>
+
         </a>
 
 
@@ -129,15 +174,22 @@ function Sidebar({
               : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("budgets");
             }
+
           }}
         >
+
           <WalletCards size={19} />
-          <span>Budgets</span>
+
+          <span>
+            Budgets
+          </span>
+
         </a>
 
 
@@ -153,15 +205,22 @@ function Sidebar({
               : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("goals");
             }
+
           }}
         >
+
           <Target size={19} />
-          <span>Goals</span>
+
+          <span>
+            Goals
+          </span>
+
         </a>
 
 
@@ -177,15 +236,22 @@ function Sidebar({
               : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("reports");
             }
+
           }}
         >
+
           <BarChart3 size={19} />
-          <span>Reports</span>
+
+          <span>
+            Reports
+          </span>
+
         </a>
 
 
@@ -201,15 +267,22 @@ function Sidebar({
               : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("ai");
             }
+
           }}
         >
+
           <Sparkles size={19} />
-          <span>AI Assistant</span>
+
+          <span>
+            AI Assistant
+          </span>
+
         </a>
 
       </nav>
@@ -219,13 +292,25 @@ function Sidebar({
           PREMIUM CARD
       ========================= */}
 
-      <div className="premium-card">
+      <div
+        className="premium-card"
+        onClick={() =>
+          setShowPremiumModal(true)
+        }
+        style={{
+          cursor: "pointer",
+        }}
+      >
 
         <div className="premium-icon">
+
           <Crown size={18} />
+
         </div>
 
+
         <div>
+
           <h4>
             Go Premium
           </h4>
@@ -233,6 +318,7 @@ function Sidebar({
           <p>
             Unlock smarter insights
           </p>
+
         </div>
 
       </div>
@@ -257,15 +343,22 @@ function Sidebar({
               : ""
           }`}
           onClick={(e) => {
+
             e.preventDefault();
 
             if (onNavigate) {
               onNavigate("settings");
             }
+
           }}
         >
+
           <Settings size={19} />
-          <span>Settings</span>
+
+          <span>
+            Settings
+          </span>
+
         </a>
 
 
@@ -276,11 +369,20 @@ function Sidebar({
         <div
           className="profile"
           onClick={() => {
+
             if (user && onNavigate) {
+
               onNavigate("profile");
-            } else if (!user && onAuthClick) {
+
+            } else if (
+              !user &&
+              onAuthClick
+            ) {
+
               onAuthClick();
+
             }
+
           }}
           style={{
             cursor: "pointer",
@@ -305,15 +407,20 @@ function Sidebar({
           <div className="profile-info">
 
             <strong>
+
               {user
                 ? username
                 : "Sign Up"}
+
             </strong>
 
+
             <span>
+
               {user
                 ? "Personal Account"
                 : "Login to Finwise"}
+
             </span>
 
           </div>
@@ -322,8 +429,74 @@ function Sidebar({
 
       </div>
 
+
+      {/* =========================
+          PREMIUM MODAL
+      ========================= */}
+
+      {showPremiumModal &&
+        createPortal(
+
+          <div
+            className="premium-modal-overlay"
+            onClick={() =>
+              setShowPremiumModal(false)
+            }
+          >
+
+            <div
+              className="premium-modal"
+              onClick={(e) =>
+                e.stopPropagation()
+              }
+            >
+
+              {/* Premium Icon */}
+
+              <div className="premium-modal-icon">
+
+                <Crown size={24} />
+
+              </div>
+
+
+              {/* Title */}
+
+              <h2>
+                Premium Coming Soon
+              </h2>
+
+
+              {/* Message */}
+
+              <p>
+                Premium features are currently
+                under development. Stay tuned!
+              </p>
+
+
+              {/* Close Button */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPremiumModal(false)
+                }
+              >
+                Got it
+              </button>
+
+            </div>
+
+          </div>,
+
+          document.body
+
+        )}
+
     </aside>
   );
 }
+
 
 export default Sidebar;

@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Sum
+from django.db.models.functions import TruncDate
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -12,8 +13,6 @@ from .serializers import (
     TransactionSerializer,
     SavingsSerializer,
 )
-
-from django.db.models.functions import TruncDate
 
 
 # =========================
@@ -155,6 +154,7 @@ class FinancialSummaryView(APIView):
             "expenses": expenses,
             "savings": savings,
         })
+
 
 # =========================
 # CATEGORY SPENDING SUMMARY
