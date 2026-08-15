@@ -7,12 +7,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Category, Transaction, Savings, Budget
+from .models import Category, Transaction, Savings, Budget, Goal
 from .serializers import (
     CategorySerializer,
     TransactionSerializer,
     SavingsSerializer,
     BudgetSerializer,
+    GoalSerializer,
 )
 
 
@@ -435,5 +436,43 @@ class BudgetDetailView(
     def get_queryset(self):
 
         return Budget.objects.filter(
+            user=self.request.user
+        )
+
+
+# =========================
+# GOAL LIST + CREATE
+# =========================
+
+class GoalListCreateView(generics.ListCreateAPIView):
+    serializer_class = GoalSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Goal.objects.filter(
+            user=self.request.user
+        ).order_by(
+            "target_date",
+            "-created_at"
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(
+            user=self.request.user
+        )
+
+
+# =========================
+# GOAL DETAIL
+# =========================
+
+class GoalDetailView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+    serializer_class = GoalSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Goal.objects.filter(
             user=self.request.user
         )

@@ -11,6 +11,8 @@ from .views import (
     SavingsListCreateView,
     BudgetListCreateView,
     BudgetDetailView,
+    GoalListCreateView,
+    GoalDetailView,
 )
 
 
@@ -73,5 +75,17 @@ urlpatterns = [
         "budgets/<int:pk>/",
         BudgetDetailView.as_view(),
         name="budget-detail",
+    ),
+    
+    path(
+    "goals/",
+    GoalListCreateView.as_view(),
+    name="goal-list-create",
+    ),
+
+    path(
+    "goals/<int:pk>/",
+    GoalDetailView.as_view(),
+    name="goal-detail",
     ),
 ]

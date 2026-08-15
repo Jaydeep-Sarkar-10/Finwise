@@ -12,6 +12,7 @@ import Profile from "./components/Profile";
 import TransactionsPage from "./components/TransactionsPage";
 import CategoriesPage from "./components/CategoriesPage";
 import BudgetsPage from "./components/BudgetsPage";
+import GoalsPage from "./components/GoalsPage";
 
 function App() {
   // =========================
@@ -336,6 +337,10 @@ function App() {
 ) : currentPage === "budgets" ? (
 
   <BudgetsPage />
+
+) : currentPage === "goals" ? (
+
+  <GoalsPage />
 
 ) : (
 
