@@ -11,6 +11,7 @@ import AuthModal from "./components/AuthModal";
 import Profile from "./components/Profile";
 import TransactionsPage from "./components/TransactionsPage";
 import CategoriesPage from "./components/CategoriesPage";
+import BudgetsPage from "./components/BudgetsPage";
 
 function App() {
   // =========================
@@ -331,6 +332,10 @@ function App() {
 ) : currentPage === "categories" ? (
 
   <CategoriesPage />
+
+) : currentPage === "budgets" ? (
+
+  <BudgetsPage />
 
 ) : (
 

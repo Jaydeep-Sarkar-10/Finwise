@@ -7,11 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Category, Transaction, Savings
+from .models import Category, Transaction, Savings, Budget
 from .serializers import (
     CategorySerializer,
     TransactionSerializer,
     SavingsSerializer,
+    BudgetSerializer,
 )
 
 
@@ -248,5 +249,191 @@ class SavingsListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(
+            user=self.request.user
+        )
+
+
+# =========================
+# BUDGET LIST + CREATE
+# =========================
+
+class BudgetListCreateView(generics.ListCreateAPIView):
+    serializer_class = BudgetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        budgets = Budget.objects.filter(
+            user=user
+        ).select_related(
+            "category"
+        ).order_by(
+            "-month",
+            "category__name"
+        )
+
+        return budgets
+
+    def perform_create(self, serializer):
+        serializer.save(
+            user=self.request.user
+        )
+
+    def list(self, request, *args, **kwargs):
+        user = request.user
+
+        budgets = Budget.objects.filter(
+            user=user
+        ).select_related(
+            "category"
+        ).order_by(
+            "-month",
+            "category__name"
+        )
+
+        result = []
+
+        for budget in budgets:
+
+            # =========================
+            # MONTH RANGE
+            # =========================
+
+            month_start = budget.month
+
+            if month_start.month == 12:
+                next_month = month_start.replace(
+                    year=month_start.year + 1,
+                    month=1,
+                    day=1
+                )
+            else:
+                next_month = month_start.replace(
+                    month=month_start.month + 1,
+                    day=1
+                )
+
+            # =========================
+            # TOTAL SPENDING
+            # =========================
+
+            spent = (
+                Transaction.objects
+                .filter(
+                    user=user,
+                    category=budget.category,
+                    type=Transaction.TransactionType.EXPENSE,
+                    date__gte=month_start,
+                    date__lt=next_month
+                )
+                .aggregate(
+                    total=Sum("amount")
+                )["total"]
+                or 0
+            )
+
+            # =========================
+            # REMAINING
+            # =========================
+
+            remaining = (
+                budget.amount - spent
+            )
+
+            # =========================
+            # PERCENTAGE
+            # =========================
+
+            if budget.amount > 0:
+                percentage = (
+                    float(spent) /
+                    float(budget.amount)
+                ) * 100
+            else:
+                percentage = 0
+
+            # Don't let the visual progress
+            # bar go beyond 100%.
+
+            progress_percentage = min(
+                percentage,
+                100
+            )
+
+            # =========================
+            # STATUS
+            # =========================
+
+            if spent > budget.amount:
+
+                status = "exceeded"
+
+            elif percentage >= 80:
+
+                status = "warning"
+
+            else:
+
+                status = "safe"
+
+            # =========================
+            # RESPONSE
+            # =========================
+
+            result.append({
+
+                "id": budget.id,
+
+                "category": budget.category.id,
+
+                "category_name":
+                    budget.category.name,
+
+                "amount": budget.amount,
+
+                "month": budget.month,
+
+                "spent": spent,
+
+                "remaining": remaining,
+
+                "percentage": round(
+                    percentage,
+                    2
+                ),
+
+                "progress_percentage":
+                    round(
+                        progress_percentage,
+                        2
+                    ),
+
+                "status": status,
+
+                "created_at":
+                    budget.created_at,
+            })
+
+        return Response(result)
+
+
+# =========================
+# BUDGET DETAIL
+# =========================
+
+class BudgetDetailView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+
+    serializer_class = BudgetSerializer
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get_queryset(self):
+
+        return Budget.objects.filter(
             user=self.request.user
         )
