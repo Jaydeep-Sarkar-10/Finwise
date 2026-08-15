@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum
-from django.db.models.functions import TruncDate
+from django.db.models.functions import TruncDate, TruncMonth
+from datetime import date
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -476,3 +477,325 @@ class GoalDetailView(
         return Goal.objects.filter(
             user=self.request.user
         )
+
+
+# =========================
+# REPORTS
+# =========================
+
+class ReportsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        user = request.user
+
+        # =========================
+        # OVERVIEW
+        # =========================
+
+        income = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.INCOME
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        expenses = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.EXPENSE
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        savings = (
+            Savings.objects
+            .filter(user=user)
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        balance = income - expenses - savings
+
+        savings_rate = (
+            (float(savings) / float(income)) * 100
+            if income > 0
+            else 0
+        )
+
+        # =========================
+        # MONTHLY REPORT
+        # =========================
+
+        monthly_data = (
+            Transaction.objects
+            .filter(user=user)
+            .annotate(
+                month=TruncMonth("date")
+            )
+            .values("month", "type")
+            .annotate(
+                total=Sum("amount")
+            )
+            .order_by("month")
+        )
+
+        monthly_map = {}
+
+        for item in monthly_data:
+
+            month = item["month"].strftime("%Y-%m")
+
+            if month not in monthly_map:
+                monthly_map[month] = {
+                    "month": month,
+                    "income": 0,
+                    "expenses": 0,
+                }
+
+            if item["type"] == Transaction.TransactionType.INCOME:
+                monthly_map[month]["income"] = item["total"]
+
+            else:
+                monthly_map[month]["expenses"] = item["total"]
+
+        # Add savings to monthly data
+        monthly_savings = (
+            Savings.objects
+            .filter(user=user)
+            .annotate(
+                month=TruncMonth("created_at")
+            )
+            .values("month")
+            .annotate(
+                total=Sum("amount")
+            )
+            .order_by("month")
+        )
+
+        for item in monthly_savings:
+
+            month = item["month"].strftime("%Y-%m")
+
+            if month not in monthly_map:
+                monthly_map[month] = {
+                    "month": month,
+                    "income": 0,
+                    "expenses": 0,
+                }
+
+            monthly_map[month]["savings"] = item["total"]
+
+        monthly = []
+
+        for month, data in sorted(monthly_map.items()):
+
+            monthly.append({
+                "month": month,
+                "income": data.get("income", 0),
+                "expenses": data.get("expenses", 0),
+                "savings": data.get("savings", 0),
+            })
+
+        # =========================
+        # CATEGORY SPENDING
+        # =========================
+
+        category_data = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.EXPENSE
+            )
+            .values(
+                "category__id",
+                "category__name"
+            )
+            .annotate(
+                total=Sum("amount")
+            )
+            .order_by("-total")
+        )
+
+        categories = []
+
+        for item in category_data:
+
+            categories.append({
+                "id": item["category__id"],
+                "name": item["category__name"],
+                "value": item["total"],
+            })
+
+        # =========================
+        # BUDGET PERFORMANCE
+        # =========================
+
+        budgets = Budget.objects.filter(
+            user=user
+        ).order_by("-month")
+
+        budget_result = []
+
+        for budget in budgets:
+
+            start_date = budget.month
+
+            if start_date.month == 12:
+
+                end_date = date(
+                    start_date.year + 1,
+                    1,
+                    1
+                )
+
+            else:
+
+                end_date = date(
+                    start_date.year,
+                    start_date.month + 1,
+                    1
+                )
+
+            spent = (
+                Transaction.objects
+                .filter(
+                    user=user,
+                    category=budget.category,
+                    type=Transaction.TransactionType.EXPENSE,
+                    date__gte=start_date,
+                    date__lt=end_date,
+                )
+                .aggregate(
+                    total=Sum("amount")
+                )["total"]
+                or 0
+            )
+
+            percentage = (
+                float(spent) /
+                float(budget.amount) *
+                100
+                if budget.amount > 0
+                else 0
+            )
+
+            if percentage >= 100:
+                status = "exceeded"
+
+            elif percentage >= 80:
+                status = "near_limit"
+
+            else:
+                status = "healthy"
+
+            remaining = max(
+                budget.amount - spent,
+                0
+            )
+
+            budget_result.append({
+                "id": budget.id,
+                "category": budget.category.name,
+                "amount": budget.amount,
+                "spent": spent,
+                "remaining": remaining,
+                "percentage": round(
+                    percentage,
+                    2
+                ),
+                "status": status,
+                "month": budget.month,
+            })
+
+        # =========================
+        # GOALS
+        # =========================
+
+        goals = Goal.objects.filter(
+            user=user
+        ).order_by("target_date")
+
+        total_savings = savings
+
+        goal_result = []
+
+        for goal in goals:
+
+            target = goal.target_amount
+
+            # Savings are shared globally.
+            # For now, show the user's total
+            # savings against each goal.
+            saved_amount = min(
+                total_savings,
+                target
+            )
+
+            remaining = max(
+                target - saved_amount,
+                0
+            )
+
+            percentage = (
+                float(saved_amount) /
+                float(target) *
+                100
+                if target > 0
+                else 0
+            )
+
+            completed = (
+                saved_amount >= target
+            )
+
+            goal_result.append({
+                "id": goal.id,
+                "name": goal.name,
+                "target_amount": target,
+                "target_date": goal.target_date,
+                "saved_amount": saved_amount,
+                "remaining_amount": remaining,
+                "percentage": round(
+                    min(percentage, 100),
+                    2
+                ),
+                "completed": completed,
+            })
+
+        # =========================
+        # RESPONSE
+        # =========================
+
+        return Response({
+            "overview": {
+                "income": income,
+                "expenses": expenses,
+                "savings": savings,
+                "balance": balance,
+                "savings_rate": round(
+                    savings_rate,
+                    2
+                ),
+            },
+
+            "monthly": monthly,
+
+            "categories": categories,
+
+            "budgets": budget_result,
+
+            "goals": goal_result,
+        })

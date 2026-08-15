@@ -13,6 +13,7 @@ from .views import (
     BudgetDetailView,
     GoalListCreateView,
     GoalDetailView,
+    ReportsView,
 )
 
 
@@ -76,7 +77,7 @@ urlpatterns = [
         BudgetDetailView.as_view(),
         name="budget-detail",
     ),
-    
+
     path(
     "goals/",
     GoalListCreateView.as_view(),
@@ -87,5 +88,10 @@ urlpatterns = [
     "goals/<int:pk>/",
     GoalDetailView.as_view(),
     name="goal-detail",
+    ),
+
+    path(
+    "reports/",
+    ReportsView.as_view(),
     ),
 ]

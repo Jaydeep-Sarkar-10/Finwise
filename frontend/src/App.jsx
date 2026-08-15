@@ -13,6 +13,7 @@ import TransactionsPage from "./components/TransactionsPage";
 import CategoriesPage from "./components/CategoriesPage";
 import BudgetsPage from "./components/BudgetsPage";
 import GoalsPage from "./components/GoalsPage";
+import ReportsPage from "./components/ReportsPage";
 
 function App() {
   // =========================
@@ -341,6 +342,10 @@ function App() {
 ) : currentPage === "goals" ? (
 
   <GoalsPage />
+
+) : currentPage === "reports" ? (
+
+  <ReportsPage />
 
 ) : (
 
