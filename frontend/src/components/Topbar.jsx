@@ -1,21 +1,42 @@
-import { Bell, Plus, UserRound } from "lucide-react";
+import { Plus, UserRound } from "lucide-react";
+import Notifications from "./Notifications";
 
-function Topbar({ onAddTransaction, onProfileClick }) {
+function Topbar({
+  onAddTransaction,
+  onProfileClick,
+}) {
   return (
     <header className="topbar">
-      <div>
-        <p className="welcome-small">Good morning 👋</p>
 
-        <h1>Welcome back, Jaydeep</h1>
+      {/* =========================
+          WELCOME
+      ========================= */}
+
+      <div>
+
+        <p className="welcome-small">
+          Good morning 👋
+        </p>
+
+        <h1>
+          Welcome back, Jaydeep
+        </h1>
 
         <p className="welcome-subtitle">
           Here's what's happening with your finances today.
         </p>
+
       </div>
+
+
+      {/* =========================
+          ACTIONS
+      ========================= */}
 
       <div className="topbar-actions">
 
-        {/* Profile */}
+        {/* PROFILE */}
+
         <button
           className="profile-btn"
           onClick={onProfileClick}
@@ -24,13 +45,14 @@ function Topbar({ onAddTransaction, onProfileClick }) {
           <UserRound size={19} />
         </button>
 
-        {/* Notifications */}
-        <button className="notification-btn">
-          <Bell size={19} />
-          <span className="notification-dot"></span>
-        </button>
 
-        {/* Add Transaction */}
+        {/* NOTIFICATIONS */}
+
+        <Notifications />
+
+
+        {/* ADD TRANSACTION */}
+
         <button
           className="add-transaction-btn"
           onClick={onAddTransaction}
@@ -40,6 +62,7 @@ function Topbar({ onAddTransaction, onProfileClick }) {
         </button>
 
       </div>
+
     </header>
   );
 }

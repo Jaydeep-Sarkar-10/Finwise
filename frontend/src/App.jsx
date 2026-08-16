@@ -14,6 +14,7 @@ import CategoriesPage from "./components/CategoriesPage";
 import BudgetsPage from "./components/BudgetsPage";
 import GoalsPage from "./components/GoalsPage";
 import ReportsPage from "./components/ReportsPage";
+import Notifications from "./components/Notifications";
 
 function App() {
   // =========================
@@ -31,6 +32,12 @@ function App() {
     useState(false);
 
   const [savingsInput, setSavingsInput] = useState("");
+
+  const [showEditSavingsModal, setShowEditSavingsModal] =
+  useState(false);
+
+const [editingSavingsId, setEditingSavingsId] =
+  useState(null);
 
   // =========================
   // AUTHENTICATION STATE
@@ -287,6 +294,153 @@ function App() {
     }
   };
 
+// =========================
+// EDIT SAVINGS
+// =========================
+
+const handleEditSavings = async () => {
+  const amount = Number(savingsInput);
+
+  if (!amount || amount <= 0) {
+    alert("Please enter a valid savings amount.");
+    return;
+  }
+
+  const token = localStorage.getItem("access");
+
+  if (!token) {
+    alert("Please login first.");
+    return;
+  }
+
+  if (!editingSavingsId) {
+    alert("Savings record not found.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/transactions/savings/${editingSavingsId}/`,
+      {
+        method: "PATCH",
+
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+
+        body: JSON.stringify({
+          amount: amount,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "Savings edit error:",
+        data
+      );
+
+      throw new Error(
+        "Failed to update savings."
+      );
+    }
+
+    console.log(
+      "Savings updated:",
+      data
+    );
+
+    // Reset
+    setSavingsInput("");
+    setEditingSavingsId(null);
+
+    // Close modal
+    setShowEditSavingsModal(false);
+
+    // Refresh dashboard
+    setRefreshTrigger(
+      (prev) => prev + 1
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Savings edit error:",
+      error
+    );
+
+    alert(
+      "Could not update savings."
+    );
+  }
+};
+
+// =========================
+// OPEN EDIT SAVINGS
+// =========================
+
+const openEditSavings = async () => {
+  const token = localStorage.getItem("access");
+
+  if (!token) {
+    alert("Please login first.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/api/transactions/savings/",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch savings");
+    }
+
+    const data = await response.json();
+
+    const savingsList = Array.isArray(data)
+      ? data
+      : data.results || [];
+
+    if (savingsList.length === 0) {
+      alert("No savings record found.");
+      return;
+    }
+
+    // Use the latest savings record for editing
+    const latestSavings = savingsList.sort(
+      (a, b) =>
+        new Date(b.created_at) -
+        new Date(a.created_at)
+    )[0];
+
+    // Store ONLY the ID.
+    // Do NOT put the existing amount in the input.
+    setEditingSavingsId(latestSavings.id);
+
+    // Empty input
+    setSavingsInput("");
+
+    // Open modal
+    setShowEditSavingsModal(true);
+
+  } catch (error) {
+    console.error(
+      "Open edit savings error:",
+      error
+    );
+
+    alert("Could not load savings.");
+  }
+};
   // =========================
   // RENDER
   // =========================
@@ -346,6 +500,10 @@ function App() {
 ) : currentPage === "reports" ? (
 
   <ReportsPage />
+
+) : currentPage === "notifications" ? (
+
+  <Notifications />
 
 ) : (
 
@@ -421,21 +579,20 @@ function App() {
               {/* SAVINGS */}
 
               <StatCard
-                title="Savings"
-                amount={
-                  loadingSummary
-                    ? "Loading..."
-                    : `₹${Number(
-                        summary.savings
-                      ).toLocaleString(
-                        "en-IN"
-                      )}`
-                }
-                type="savings"
-                onAddSavings={() =>
-                  setShowSavingsModal(true)
-                }
-              />
+  title="Savings"
+  amount={
+    loadingSummary
+      ? "Loading..."
+      : `₹${Number(
+          summary.savings
+        ).toLocaleString("en-IN")}`
+  }
+  type="savings"
+  onAddSavings={() =>
+    setShowSavingsModal(true)
+  }
+  onEditSavings={openEditSavings}
+/>
 
             </section>
 
@@ -615,6 +772,116 @@ function App() {
           </div>
 
         )}
+
+        {/* =========================
+    EDIT SAVINGS MODAL
+========================= */}
+
+{showEditSavingsModal && (
+
+  <div className="modal-overlay">
+
+    <div className="transaction-modal">
+
+      {/* HEADER */}
+
+      <div className="modal-header">
+
+        <div>
+
+          <h2>
+            Edit Savings
+          </h2>
+
+          <p>
+            Update your savings amount
+          </p>
+
+        </div>
+
+        <button
+          className="close-btn"
+          type="button"
+          onClick={() => {
+            setShowEditSavingsModal(false);
+            setSavingsInput("");
+            setEditingSavingsId(null);
+          }}
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      {/* INPUT */}
+
+      <div className="form-group">
+
+        <label>
+          Savings Amount
+        </label>
+
+        <div className="amount-input">
+
+          <span>
+            ₹
+          </span>
+
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            placeholder="0.00"
+            value={savingsInput}
+            onChange={(e) =>
+              setSavingsInput(
+                e.target.value
+              )
+            }
+            autoFocus
+          />
+
+        </div>
+
+      </div>
+
+
+      {/* ACTIONS */}
+
+      <div className="modal-actions">
+
+        <button
+          type="button"
+          className="cancel-btn"
+          onClick={() => {
+            setShowEditSavingsModal(false);
+            setSavingsInput("");
+            setEditingSavingsId(null);
+          }}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="save-btn"
+          onClick={handleEditSavings}
+          disabled={
+            !savingsInput ||
+            Number(savingsInput) <= 0
+          }
+        >
+          Save Changes
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
 
         {/* ========================= */}
         {/* AUTH MODAL */}

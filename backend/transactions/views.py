@@ -8,14 +8,20 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Category, Transaction, Savings, Budget, Goal
+from .models import Category, Transaction, Savings, Budget, Goal, Notification
 from .serializers import (
     CategorySerializer,
     TransactionSerializer,
     SavingsSerializer,
     BudgetSerializer,
     GoalSerializer,
+    NotificationSerializer,
 )
+
+from .notification_service import (
+    check_all_notifications,
+)
+
 
 
 # =========================
@@ -254,6 +260,46 @@ class SavingsListCreateView(generics.ListCreateAPIView):
             user=self.request.user
         )
 
+        # Check notifications after savings are added
+        check_all_notifications(
+            self.request.user
+        )
+
+
+# =========================
+# SAVINGS DETAIL / UPDATE
+# =========================
+
+class SavingsDetailView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+    serializer_class = SavingsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Savings.objects.filter(
+            user=self.request.user
+        )
+
+    def perform_update(self, serializer):
+
+        user = self.request.user
+
+        # New amount entered by the user
+        new_amount = serializer.validated_data.get("amount")
+
+        # Save the record being edited
+        savings = serializer.save()
+
+        # Delete all other savings records
+        Savings.objects.filter(
+            user=user
+        ).exclude(
+            id=savings.id
+        ).delete()
+
+        # Check notifications after editing savings
+        check_all_notifications(user)
 
 # =========================
 # BUDGET LIST + CREATE
@@ -798,4 +844,98 @@ class ReportsView(APIView):
             "budgets": budget_result,
 
             "goals": goal_result,
+        })
+
+
+
+# =========================================================
+# NOTIFICATIONS
+# =========================================================
+
+class NotificationListView(
+    generics.ListAPIView
+):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        return Notification.objects.filter(
+            user=self.request.user
+        ).order_by("-created_at")
+
+
+# =========================================================
+# NOTIFICATION DETAIL
+# =========================================================
+
+class NotificationDetailView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        return Notification.objects.filter(
+            user=self.request.user
+        )
+
+
+# =========================================================
+# MARK ALL NOTIFICATIONS AS READ
+# =========================================================
+
+# =========================================================
+# MARK ALL NOTIFICATIONS AS READ
+# =========================================================
+
+class MarkAllNotificationsReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).update(
+            is_read=True
+        )
+
+        return Response({
+            "message": "All notifications marked as read."
+        })
+
+
+# =========================================================
+# MARK ONE NOTIFICATION AS READ
+# =========================================================
+
+class MarkNotificationReadView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        try:
+            notification = Notification.objects.get(
+                id=pk,
+                user=request.user
+            )
+
+        except Notification.DoesNotExist:
+
+            return Response(
+                {
+                    "error": "Notification not found."
+                },
+                status=404
+            )
+
+        notification.is_read = True
+        notification.save(
+            update_fields=["is_read"]
+        )
+
+        return Response({
+            "message": "Notification marked as read."
         })

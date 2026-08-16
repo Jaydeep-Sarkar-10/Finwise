@@ -135,3 +135,56 @@ class Goal(models.Model):
             f"{self.name} - "
             f"₹{self.target_amount}"
         )
+
+
+
+class Notification(models.Model):
+
+    class NotificationType(models.TextChoices):
+        BUDGET_WARNING = "budget_warning", "Budget Warning"
+        BUDGET_EXCEEDED = "budget_exceeded", "Budget Exceeded"
+
+        GOAL_MILESTONE = "goal_milestone", "Goal Milestone"
+        GOAL_COMPLETED = "goal_completed", "Goal Completed"
+        GOAL_DEADLINE = "goal_deadline", "Goal Deadline"
+        GOAL_OVERDUE = "goal_overdue", "Goal Overdue"
+
+        SAVINGS_ADDED = "savings_added", "Savings Added"
+        SPENDING_ALERT = "spending_alert", "Spending Alert"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notifications"
+    )
+
+    type = models.CharField(
+        max_length=30,
+        choices=NotificationType.choices
+    )
+
+    title = models.CharField(
+        max_length=150
+    )
+
+    message = models.TextField()
+
+    unique_key = models.CharField(
+    max_length=255,
+    null=True,
+    blank=True,
+    )
+
+    is_read = models.BooleanField(
+        default=False
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return (
+            f"{self.user.username} - "
+            f"{self.title}"
+        )

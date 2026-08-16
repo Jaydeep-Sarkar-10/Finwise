@@ -14,6 +14,11 @@ from .views import (
     GoalListCreateView,
     GoalDetailView,
     ReportsView,
+    NotificationListView,
+    NotificationDetailView,
+    MarkAllNotificationsReadView,
+    MarkNotificationReadView,
+    SavingsDetailView,
 )
 
 
@@ -66,6 +71,11 @@ urlpatterns = [
         name="savings-list-create",
     ),
 
+    path(
+    "savings/<int:pk>/",
+    SavingsDetailView.as_view()
+),
+
         path(
         "budgets/",
         BudgetListCreateView.as_view(),
@@ -94,4 +104,25 @@ urlpatterns = [
     "reports/",
     ReportsView.as_view(),
     ),
+
+    path(
+    "notifications/",
+    NotificationListView.as_view(),
+),
+
+path(
+    "notifications/<int:pk>/",
+    NotificationDetailView.as_view(),
+),
+
+path(
+    "notifications/mark-all-read/",
+    MarkAllNotificationsReadView.as_view(),
+),
+
+path(
+    "notifications/<int:pk>/read/",
+    MarkNotificationReadView.as_view(),
+    name="notification-read"
+),
 ]

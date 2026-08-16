@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Transaction, Savings, Budget, Goal
+from .models import Category, Transaction, Savings, Budget, Goal, Notification
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -234,3 +234,23 @@ class GoalSerializer(serializers.ModelSerializer):
         ).days
 
         return max(difference, 0)
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notification
+
+        fields = [
+            "id",
+            "type",
+            "title",
+            "message",
+            "is_read",
+            "created_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "created_at",
+        ]
