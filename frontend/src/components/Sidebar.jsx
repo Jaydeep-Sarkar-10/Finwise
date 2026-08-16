@@ -9,7 +9,6 @@ import {
   Target,
   BarChart3,
   Sparkles,
-  Settings,
   Crown,
   User,
 } from "lucide-react";
@@ -335,31 +334,7 @@ function Sidebar({
             SETTINGS
         ========================= */}
 
-        <a
-          href="#"
-          className={`nav-item ${
-            currentPage === "settings"
-              ? "active"
-              : ""
-          }`}
-          onClick={(e) => {
-
-            e.preventDefault();
-
-            if (onNavigate) {
-              onNavigate("settings");
-            }
-
-          }}
-        >
-
-          <Settings size={19} />
-
-          <span>
-            Settings
-          </span>
-
-        </a>
+        
 
 
         {/* =========================
