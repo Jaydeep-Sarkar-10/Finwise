@@ -54,3 +54,6 @@ frontend/.env.*
 !frontend/.env.example
 
 firebase-service-account.json
+
+
+.env

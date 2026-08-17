@@ -15,6 +15,7 @@ import BudgetsPage from "./components/BudgetsPage";
 import GoalsPage from "./components/GoalsPage";
 import ReportsPage from "./components/ReportsPage";
 import Notifications from "./components/Notifications";
+import AIAssistant from "./components/AIAssistant";
 
 function App() {
   // =========================
@@ -504,6 +505,10 @@ const openEditSavings = async () => {
 ) : currentPage === "notifications" ? (
 
   <Notifications />
+
+) : currentPage === "ai" ? (
+
+  <AIAssistant />
 
 ) : (
 
