@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../utils/api";
 
 import {
   ResponsiveContainer,
@@ -47,14 +48,9 @@ function CategoryChart({ refreshTrigger }) {
 
       try {
 
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/transactions/category-summary/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiFetch(
+  "/api/transactions/category-summary/"
+);
 
 
         if (!response.ok) {

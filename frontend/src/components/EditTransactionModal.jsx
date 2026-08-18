@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { apiFetch } from "../utils/api";
+
 function EditTransactionModal({
   transaction,
   onClose,
@@ -49,44 +51,29 @@ function EditTransactionModal({
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const token =
-        localStorage.getItem("access");
+  try {
+    const response = await apiFetch(
+      "/api/transactions/categories/"
+    );
 
-      if (!token) {
-        setLoadingCategories(false);
-        return;
-      }
+    if (!response.ok) {
+      throw new Error(
+        "Failed to fetch categories"
+      );
+    }
 
-      try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/transactions/categories/",
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
+    const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(
-            "Failed to fetch categories"
-          );
-        }
-
-        const data =
-          await response.json();
-
-        setCategories(data);
-      } catch (error) {
-        console.error(
-          "Categories error:",
-          error
-        );
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
+    setCategories(data);
+  } catch (error) {
+    console.error(
+      "Categories error:",
+      error
+    );
+  } finally {
+    setLoadingCategories(false);
+  }
+};
 
     fetchCategories();
   }, []);
@@ -114,39 +101,27 @@ function EditTransactionModal({
       return;
     }
 
-    const token =
-      localStorage.getItem("access");
-
-    if (!token) {
-      alert("Please login first.");
-      return;
-    }
-
     setLoading(true);
 
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/transactions/${transaction.id}/`,
-        {
-          method: "PATCH",
+try {
+  const response = await apiFetch(
+    `/api/transactions/${transaction.id}/`,
+    {
+      method: "PATCH",
 
-          headers: {
-            "Content-Type":
-              "application/json",
+      headers: {
+        "Content-Type": "application/json",
+      },
 
-            Authorization:
-              `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            amount: Number(amount),
-            type: type,
-            category: Number(category),
-            description: description,
-            date: date,
-          }),
-        }
-      );
+      body: JSON.stringify({
+        amount: Number(amount),
+        type: type,
+        category: Number(category),
+        description: description,
+        date: date,
+      }),
+    }
+  );
 
       const data =
         await response.json();

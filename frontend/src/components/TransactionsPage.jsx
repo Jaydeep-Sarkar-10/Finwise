@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import EditTransactionModal from "./EditTransactionModal";
 
+import { apiFetch } from "../utils/api";
+
 function TransactionsPage({
   onAddTransaction,
   refreshTrigger,
@@ -47,14 +49,9 @@ function TransactionsPage({
         setLoading(true);
         setError("");
 
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/transactions/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiFetch(
+  "/api/transactions/"
+);
 
         if (!response.ok) {
           throw new Error(
@@ -101,14 +98,9 @@ function TransactionsPage({
       }
 
       try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/transactions/categories/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiFetch(
+  "/api/transactions/categories/"
+);
 
         if (!response.ok) {
           throw new Error(
@@ -198,52 +190,38 @@ function TransactionsPage({
       return;
     }
 
-    const token =
-      localStorage.getItem("access");
-
-    if (!token) {
-      alert("Please login first.");
-      return;
-    }
-
     try {
-
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/transactions/${id}/`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          "Failed to delete transaction"
-        );
-      }
-
-      setTransactions((prev) =>
-        prev.filter(
-          (transaction) =>
-            transaction.id !== id
-        )
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Delete transaction error:",
-        error
-      );
-
-      alert(
-        "Could not delete transaction."
-      );
+  const response = await apiFetch(
+    `/api/transactions/${id}/`,
+    {
+      method: "DELETE",
     }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Failed to delete transaction"
+    );
+  }
+
+  setTransactions((prev) =>
+    prev.filter(
+      (transaction) =>
+        transaction.id !== id
+    )
+  );
+
+} catch (error) {
+
+  console.error(
+    "Delete transaction error:",
+    error
+  );
+
+  alert(
+    "Could not delete transaction."
+  );
+}
   };
 
 

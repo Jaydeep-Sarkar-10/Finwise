@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../utils/api"; 
+
 import {
   Tags,
   Plus,
@@ -21,48 +23,46 @@ function CategoriesPage() {
   // =========================
 
   const fetchCategories = async () => {
-    const token = localStorage.getItem("access");
+  try {
+    setLoading(true);
+    setError("");
 
-    if (!token) {
-      setCategories([]);
-      setLoading(false);
-      return;
-    }
+    const response = await apiFetch(
+      "/api/transactions/categories/"
+    );
 
-    try {
-      setLoading(true);
-      setError("");
+    if (!response.ok) {
+      const errorData =
+        await response.json().catch(() => null);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/categories/",
-        {
-          method: "GET",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      console.error(
+        "Fetch categories error:",
+        errorData
       );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-
-        console.error("Fetch categories error:", errorData);
-
-        throw new Error("Failed to fetch categories");
-      }
-
-      const data = await response.json();
-
-      setCategories(data);
-    } catch (error) {
-      console.error("Category fetch error:", error);
-
-      setError("Could not load categories.");
-    } finally {
-      setLoading(false);
+      throw new Error(
+        "Failed to fetch categories"
+      );
     }
-  };
+
+    const data = await response.json();
+
+    setCategories(data);
+
+  } catch (error) {
+    console.error(
+      "Category fetch error:",
+      error
+    );
+
+    setError(
+      "Could not load categories."
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   // =========================
   // LOAD CATEGORIES
@@ -77,145 +77,128 @@ function CategoriesPage() {
   // =========================
 
   const handleAddCategory = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const trimmedName = categoryName.trim();
+  const trimmedName = categoryName.trim();
 
-    if (!trimmedName) {
-      return;
-    }
+  if (!trimmedName) {
+    return;
+  }
 
-    const token = localStorage.getItem("access");
+  try {
+    setAdding(true);
 
-    if (!token) {
-      alert("Please login first.");
-      return;
-    }
+    const response = await apiFetch(
+      "/api/transactions/categories/",
+      {
+        method: "POST",
 
-    try {
-      setAdding(true);
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/categories/",
-        {
-          method: "POST",
+        body: JSON.stringify({
+          name: trimmedName,
+          icon: "circle",
+        }),
+      }
+    );
 
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+    const data =
+      await response.json().catch(() => null);
 
-          body: JSON.stringify({
-            name: trimmedName,
-            icon: "circle",
-          }),
-        }
+    if (!response.ok) {
+      console.error(
+        "Add category error:",
+        data
       );
 
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        console.error("Add category error:", data);
-
-        throw new Error("Failed to add category");
-      }
-
-      // =========================
-      // ADD TO UI
-      // =========================
-
-      setCategories((prev) => [
-        ...prev,
-        data,
-      ]);
-
-      // =========================
-      // CLEAR FORM
-      // =========================
-
-      setCategoryName("");
-
-      // =========================
-      // CLOSE FORM
-      // =========================
-
-      setShowAddForm(false);
-
-    } catch (error) {
-      console.error("Add category error:", error);
-
-      alert("Could not add category.");
-    } finally {
-      setAdding(false);
+      throw new Error(
+        "Failed to add category"
+      );
     }
-  };
+
+    // ADD TO UI
+    setCategories((prev) => [
+      ...prev,
+      data,
+    ]);
+
+    // CLEAR FORM
+    setCategoryName("");
+
+    // CLOSE FORM
+    setShowAddForm(false);
+
+  } catch (error) {
+    console.error(
+      "Add category error:",
+      error
+    );
+
+    alert(
+      "Could not add category."
+    );
+
+  } finally {
+    setAdding(false);
+  }
+};
 
   // =========================
   // DELETE CATEGORY
   // =========================
 
   const handleDeleteCategory = async (category) => {
-    const confirmed = window.confirm(
-      `Delete "${category.name}"?`
+  const confirmed = window.confirm(
+    `Delete "${category.name}"?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await apiFetch(
+      `/api/transactions/categories/${category.id}/`,
+      {
+        method: "DELETE",
+      }
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!response.ok) {
+      const errorData =
+        await response.json().catch(() => null);
 
-    const token = localStorage.getItem("access");
-
-    if (!token) {
-      alert("Please login first.");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/transactions/categories/${category.id}/`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-
-        console.error(
-          "Delete category error:",
-          errorData
-        );
-
-        throw new Error(
-          "Failed to delete category"
-        );
-      }
-
-      // =========================
-      // REMOVE FROM UI
-      // =========================
-
-      setCategories((prev) =>
-        prev.filter(
-          (item) => item.id !== category.id
-        )
-      );
-
-    } catch (error) {
       console.error(
         "Delete category error:",
-        error
+        errorData
       );
 
-      alert(
-        "This category may already be used by a transaction, so it cannot be deleted."
+      throw new Error(
+        "Failed to delete category"
       );
     }
-  };
+
+    // REMOVE FROM UI
+    setCategories((prev) =>
+      prev.filter(
+        (item) =>
+          item.id !== category.id
+      )
+    );
+
+  } catch (error) {
+    console.error(
+      "Delete category error:",
+      error
+    );
+
+    alert(
+      "This category may already be used by a transaction, so it cannot be deleted."
+    );
+  }
+};
 
   // =========================
   // CLOSE ADD FORM

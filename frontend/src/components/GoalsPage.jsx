@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../utils/api";
+
 import {
   Target,
   Plus,
@@ -9,7 +11,6 @@ import {
   Clock3,
 } from "lucide-react";
 
-const API_URL = "http://127.0.0.1:8000/api/transactions/goals/";
 
 function GoalsPage() {
   const [goals, setGoals] = useState([]);
@@ -29,36 +30,34 @@ function GoalsPage() {
   // =========================
 
   const fetchGoals = async () => {
-    const token = localStorage.getItem("access");
+  const token = localStorage.getItem("access");
 
-    if (!token) {
-      setGoals([]);
-      setLoading(false);
-      return;
+  if (!token) {
+    setGoals([]);
+    setLoading(false);
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const response = await apiFetch(
+      "/api/transactions/goals/"
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch goals");
     }
 
-    try {
-      setLoading(true);
+    const data = await response.json();
 
-      const response = await fetch(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch goals");
-      }
-
-      const data = await response.json();
-
-      setGoals(data);
-    } catch (error) {
-      console.error("Goal fetch error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setGoals(data);
+  } catch (error) {
+    console.error("Goal fetch error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // =========================
   // LOAD GOALS
@@ -116,127 +115,134 @@ function GoalsPage() {
   // =========================
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!name || !targetAmount || !targetDate) {
-      return;
-    }
+  if (!name || !targetAmount || !targetDate) {
+    return;
+  }
 
-    const token = localStorage.getItem("access");
+  try {
+    setSaving(true);
 
-    if (!token) {
-      alert("Please login first.");
-      return;
-    }
+    const isEditing = Boolean(editingGoal);
 
-    try {
-      setSaving(true);
+    const endpoint = isEditing
+      ? `/api/transactions/goals/${editingGoal.id}/`
+      : "/api/transactions/goals/";
 
-      const isEditing = Boolean(editingGoal);
+    const method = isEditing ? "PUT" : "POST";
 
-      const url = isEditing
-        ? `${API_URL}${editingGoal.id}/`
-        : API_URL;
-
-      const method = isEditing ? "PUT" : "POST";
-
-      const response = await fetch(url, {
+    const response = await apiFetch(
+      endpoint,
+      {
         method,
+
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+
         body: JSON.stringify({
           name,
           target_amount: Number(targetAmount),
           target_date: targetDate,
         }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Goal save error:", data);
-
-        throw new Error("Failed to save goal");
       }
+    );
 
-      if (isEditing) {
-        setGoals((prev) =>
-          prev.map((goal) =>
-            goal.id === editingGoal.id
-              ? data
-              : goal
-          )
-        );
-      } else {
-        setGoals((prev) => [
-          data,
-          ...prev,
-        ]);
-      }
+    const data = await response.json();
 
-      resetForm();
-    } catch (error) {
-      console.error("Goal save error:", error);
-
-      alert(
-        editingGoal
-          ? "Could not update goal."
-          : "Could not create goal."
+    if (!response.ok) {
+      console.error(
+        "Goal save error:",
+        data
       );
-    } finally {
-      setSaving(false);
+
+      throw new Error(
+        "Failed to save goal"
+      );
     }
-  };
+
+    if (isEditing) {
+      setGoals((prev) =>
+        prev.map((goal) =>
+          goal.id === editingGoal.id
+            ? data
+            : goal
+        )
+      );
+    } else {
+      setGoals((prev) => [
+        data,
+        ...prev,
+      ]);
+    }
+
+    resetForm();
+
+  } catch (error) {
+
+    console.error(
+      "Goal save error:",
+      error
+    );
+
+    alert(
+      editingGoal
+        ? "Could not update goal."
+        : "Could not create goal."
+    );
+
+  } finally {
+    setSaving(false);
+  }
+};
 
   // =========================
   // DELETE GOAL
   // =========================
 
   const handleDelete = async (goal) => {
-    const confirmed = window.confirm(
-      `Delete "${goal.name}" goal?`
+  const confirmed = window.confirm(
+    `Delete "${goal.name}" goal?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const token = localStorage.getItem("access");
+
+  if (!token) {
+    alert("Please login first.");
+    return;
+  }
+
+  try {
+    const response = await apiFetch(
+      `/api/transactions/goals/${goal.id}/`,
+      {
+        method: "DELETE",
+      }
     );
 
-    if (!confirmed) {
-      return;
+    if (!response.ok) {
+      throw new Error("Failed to delete goal");
     }
 
-    const token = localStorage.getItem("access");
+    setGoals((prev) =>
+      prev.filter(
+        (item) => item.id !== goal.id
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Goal delete error:",
+      error
+    );
 
-    if (!token) {
-      alert("Please login first.");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${API_URL}${goal.id}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete goal");
-      }
-
-      setGoals((prev) =>
-        prev.filter(
-          (item) => item.id !== goal.id
-        )
-      );
-    } catch (error) {
-      console.error("Goal delete error:", error);
-
-      alert("Could not delete goal.");
-    }
-  };
-
+    alert("Could not delete goal.");
+  }
+};
   // =========================
   // FORMAT CURRENCY
   // =========================

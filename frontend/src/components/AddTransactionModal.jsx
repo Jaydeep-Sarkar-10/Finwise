@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { apiFetch } from "../utils/api";
 
 function AddTransactionModal({ onClose, onTransactionAdded }) {
   const [type, setType] = useState("expense");
@@ -23,22 +24,9 @@ function AddTransactionModal({ onClose, onTransactionAdded }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const token = localStorage.getItem("access");
-
-        if (!token) {
-          setError("Please login first.");
-          setLoadingCategories(false);
-          return;
-        }
-
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/transactions/categories/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiFetch(
+  "/api/transactions/categories/"
+);
 
         if (!response.ok) {
           throw new Error("Failed to fetch categories");
@@ -65,71 +53,62 @@ function AddTransactionModal({ onClose, onTransactionAdded }) {
   // =========================
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    setError("");
-    setSaving(true);
+  setError("");
+  setSaving(true);
 
-    try {
-      const token = localStorage.getItem("access");
+  try {
+    const transactionData = {
+      amount: amount,
+      type: type,
+      category: Number(category),
+      description: description,
+      date: date,
+    };
 
-      if (!token) {
-        setError("Please login first.");
-        setSaving(false);
-        return;
+    console.log("Sending transaction:", transactionData);
+
+    const response = await apiFetch(
+      "/api/transactions/",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(transactionData),
       }
+    );
 
-      const transactionData = {
-        amount: amount,
-        type: type,
-        category: Number(category),
-        description: description,
-        date: date,
-      };
+    const data = await response.json();
 
-      console.log("Sending transaction:", transactionData);
+    if (!response.ok) {
+      console.error("Backend error:", data);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: JSON.stringify(transactionData),
-        }
+      throw new Error(
+        data.detail || "Failed to add transaction."
       );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Backend error:", data);
-
-        throw new Error(
-          data.detail || "Failed to add transaction."
-        );
-      }
-
-      console.log("Transaction created:", data);
-
-      if (onTransactionAdded) {
-        onTransactionAdded(data);
-      }
-
-      onClose();
-    } catch (error) {
-      console.error("Transaction error:", error);
-
-      setError(
-        error.message || "Something went wrong."
-      );
-    } finally {
-      setSaving(false);
     }
-  };
+
+    console.log("Transaction created:", data);
+
+    if (onTransactionAdded) {
+      onTransactionAdded(data);
+    }
+
+    onClose();
+
+  } catch (error) {
+    console.error("Transaction error:", error);
+
+    setError(
+      error.message || "Something went wrong."
+    );
+
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <div className="modal-overlay">

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../utils/api";
+
 import {
   WalletCards,
   Plus,
@@ -34,14 +36,9 @@ function BudgetsPage() {
     }
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/budgets/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiFetch(
+  "/api/transactions/budgets/"
+);
 
       if (!response.ok) {
         throw new Error("Failed to fetch budgets");
@@ -64,14 +61,9 @@ function BudgetsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/categories/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiFetch(
+  "/api/transactions/categories/"
+);
 
       if (!response.ok) {
         throw new Error("Failed to fetch categories");
@@ -94,14 +86,9 @@ function BudgetsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiFetch(
+  "/api/transactions/"
+);
 
       if (!response.ok) {
         throw new Error("Failed to fetch transactions");
@@ -195,23 +182,20 @@ function BudgetsPage() {
     try {
       setAdding(true);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/budgets/",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            category: Number(categoryId),
-            amount: Number(amount),
-            month: `${month}-01`,
-          }),
-        }
-      );
+      const response = await apiFetch(
+  "/api/transactions/budgets/",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      category: Number(categoryId),
+      amount: Number(amount),
+      month: `${month}-01`,
+    }),
+  }
+);
 
       const data = await response.json();
 
@@ -256,16 +240,12 @@ function BudgetsPage() {
     }
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/transactions/budgets/${budget.id}/`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiFetch(
+  `/api/transactions/budgets/${budget.id}/`,
+  {
+    method: "DELETE",
+  }
+);
 
       if (!response.ok) {
         throw new Error("Failed to delete budget");

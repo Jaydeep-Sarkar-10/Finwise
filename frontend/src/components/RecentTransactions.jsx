@@ -10,8 +10,14 @@ import {
   ArrowDownLeft,
 } from "lucide-react";
 
+import { apiFetch } from "../utils/api";
 
-function RecentTransactions({ refreshTrigger, setCurrentPage}) {
+
+function RecentTransactions({
+  refreshTrigger,
+  setCurrentPage,
+  user,
+}) {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,40 +30,29 @@ function RecentTransactions({ refreshTrigger, setCurrentPage}) {
 
   useEffect(() => {
     const fetchTransactions = async () => {
+      setLoading(true);
+setError("");
       try {
-        const token = localStorage.getItem("access");
 
-        if (!token) {
-          setError("Please login first.");
-          setLoading(false);
-          return;
-        }
 
         // Fetch transactions
-        const transactionResponse = await fetch(
-          "http://127.0.0.1:8000/api/transactions/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // Fetch transactions
+const transactionResponse = await apiFetch(
+  "/api/transactions/"
+);
 
-        if (!transactionResponse.ok) {
-          throw new Error("Failed to fetch transactions");
-        }
+if (!transactionResponse.ok) {
+  throw new Error("Failed to fetch transactions");
+}
 
-        const transactionData = await transactionResponse.json();
+const transactionData =
+  await transactionResponse.json();
 
-        // Fetch categories
-        const categoryResponse = await fetch(
-          "http://127.0.0.1:8000/api/transactions/categories/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+
+// Fetch categories
+const categoryResponse = await apiFetch(
+  "/api/transactions/categories/"
+);
 
         if (!categoryResponse.ok) {
           throw new Error("Failed to fetch categories");
@@ -77,7 +72,7 @@ function RecentTransactions({ refreshTrigger, setCurrentPage}) {
     };
 
     fetchTransactions();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, user]);
 
 
   // =========================

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../utils/api";
+
 import {
   TrendingUp,
   TrendingDown,
@@ -9,41 +11,37 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-const API_URL =
-  "http://127.0.0.1:8000/api/transactions/reports/";
 
 function ReportsPage() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchReports = async () => {
-    const token = localStorage.getItem("access");
+  const token = localStorage.getItem("access");
 
-    if (!token) {
-      setLoading(false);
-      return;
+  if (!token) {
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const response = await apiFetch(
+      "/api/transactions/reports/"
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch reports");
     }
 
-    try {
-      const response = await fetch(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch reports");
-      }
-
-      const data = await response.json();
-
-      setReport(data);
-    } catch (error) {
-      console.error("Reports fetch error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setReport(data);
+  } catch (error) {
+    console.error("Reports fetch error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchReports();

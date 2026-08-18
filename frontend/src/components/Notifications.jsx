@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+
+import { apiFetch } from "../utils/api";
+
 import {
   Bell,
   CheckCheck,
@@ -10,9 +13,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-const API_URL =
-  "http://127.0.0.1:8000/api/transactions/notifications/";
-
 function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [showPanel, setShowPanel] = useState(false);
@@ -22,43 +22,41 @@ function Notifications() {
   // FETCH NOTIFICATIONS
   // =========================
 
-  const fetchNotifications = async () => {
-    const token = localStorage.getItem("access");
+ const fetchNotifications = async () => {
+  const token = localStorage.getItem("access");
 
-    if (!token) {
-      setNotifications([]);
-      return;
+  if (!token) {
+    setNotifications([]);
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const response = await apiFetch(
+      "/api/transactions/notifications/"
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch notifications");
     }
 
-    try {
-      setLoading(true);
+    const data = await response.json();
 
-      const response = await fetch(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
-      }
-
-      const data = await response.json();
-
-      setNotifications(
-        Array.isArray(data)
-          ? data
-          : data.results || []
-      );
-    } catch (error) {
-      console.error(
-        "Notification fetch error:",
-        error
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    setNotifications(
+      Array.isArray(data)
+        ? data
+        : data.results || []
+    );
+  } catch (error) {
+    console.error(
+      "Notification fetch error:",
+      error
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   // =========================
   // LOAD
@@ -88,47 +86,43 @@ function Notifications() {
   // =========================
 
   const markAsRead = async (notification) => {
-    const token = localStorage.getItem("access");
+  const token = localStorage.getItem("access");
 
-    if (!token || notification.is_read) {
-      return;
-    }
+  if (!token || notification.is_read) {
+    return;
+  }
 
-    try {
-      const response = await fetch(
-        `${API_URL}${notification.id}/read/`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          "Failed to mark notification as read"
-        );
+  try {
+    const response = await apiFetch(
+      `/api/transactions/notifications/${notification.id}/read/`,
+      {
+        method: "PATCH",
       }
+    );
 
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === notification.id
-            ? {
-                ...item,
-                is_read: true,
-              }
-            : item
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Mark read error:",
-        error
+    if (!response.ok) {
+      throw new Error(
+        "Failed to mark notification as read"
       );
     }
-  };
 
+    setNotifications((prev) =>
+      prev.map((item) =>
+        item.id === notification.id
+          ? {
+              ...item,
+              is_read: true,
+            }
+          : item
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Mark read error:",
+      error
+    );
+  }
+};
   // =========================
   // MARK ALL AS READ
   // =========================
@@ -141,34 +135,32 @@ function Notifications() {
   }
 
   try {
-    const response = await fetch(
-      `${API_URL}mark-all-read/`,
+    const response = await apiFetch(
+      "/api/transactions/notifications/mark-all-read/",
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Mark all read error:", data);
+      console.error(
+        "Mark all read error:",
+        data
+      );
 
       throw new Error(
         "Failed to mark all notifications as read"
       );
     }
 
-    // Update frontend immediately
     setNotifications((prev) =>
       prev.map((item) => ({
         ...item,
         is_read: true,
       }))
     );
-
   } catch (error) {
     console.error(
       "Mark all read error:",
@@ -190,13 +182,10 @@ const deleteNotification = async (notification) => {
   }
 
   try {
-    const response = await fetch(
-      `${API_URL}${notification.id}/`,
+    const response = await apiFetch(
+      `/api/transactions/notifications/${notification.id}/`,
       {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       }
     );
 
@@ -213,14 +202,11 @@ const deleteNotification = async (notification) => {
       );
     }
 
-    // Remove from UI immediately
     setNotifications((prev) =>
       prev.filter(
-        (item) =>
-          item.id !== notification.id
+        (item) => item.id !== notification.id
       )
     );
-
   } catch (error) {
     console.error(
       "Delete notification error:",

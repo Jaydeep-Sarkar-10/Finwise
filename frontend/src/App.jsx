@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { apiFetch } from "./utils/api";
+
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import StatCard from "./components/StatCard";
@@ -115,14 +117,9 @@ const [editingSavingsId, setEditingSavingsId] =
       setLoadingSummary(true);
 
       try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/transactions/summary/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiFetch(
+  "/api/transactions/summary/"
+);
 
         if (!response.ok) {
           throw new Error(
@@ -241,21 +238,18 @@ const [editingSavingsId, setEditingSavingsId] =
     }
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/transactions/savings/",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            amount: amount,
-          }),
-        }
-      );
+      const response = await apiFetch(
+  "/api/transactions/savings/",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount: amount,
+    }),
+  }
+);
 
       const data = await response.json();
 
@@ -320,21 +314,18 @@ const handleEditSavings = async () => {
   }
 
   try {
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/transactions/savings/${editingSavingsId}/`,
-      {
-        method: "PATCH",
-
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-
-        body: JSON.stringify({
-          amount: amount,
-        }),
-      }
-    );
+    const response = await apiFetch(
+  `/api/transactions/savings/${editingSavingsId}/`,
+  {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount: amount,
+    }),
+  }
+);
 
     const data = await response.json();
 
@@ -392,14 +383,9 @@ const openEditSavings = async () => {
   }
 
   try {
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/transactions/savings/",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await apiFetch(
+  "/api/transactions/savings/"
+);
 
     if (!response.ok) {
       throw new Error("Failed to fetch savings");
@@ -628,11 +614,10 @@ const openEditSavings = async () => {
             <section className="bottom-grid">
 
               <RecentTransactions
-                refreshTrigger={
-                  refreshTrigger
-                }
-                setCurrentPage={setCurrentPage}
-              />
+  refreshTrigger={refreshTrigger}
+  setCurrentPage={setCurrentPage}
+  user={user}
+/>
 
             </section>
           </>

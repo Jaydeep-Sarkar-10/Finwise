@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Send, Sparkles, User } from "lucide-react";
+import { apiFetch } from "../utils/api";
 
 function AIAssistant() {
   const [message, setMessage] = useState("");
@@ -33,21 +34,20 @@ function AIAssistant() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/ai/chat/",
-        {
-          method: "POST",
+      const response = await apiFetch(
+  "/api/ai/chat/",
+  {
+    method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-          body: JSON.stringify({
-            message: userMessage,
-          }),
-        }
-      );
+    body: JSON.stringify({
+      message: userMessage,
+    }),
+  }
+);
 
       const data = await response.json();
 
