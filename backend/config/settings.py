@@ -50,8 +50,7 @@ INSTALLED_APPS = [
 
     "users",
     "transactions",
-    "budgets",
-    "goals",
+    
     "analytics",
     "ai",
 ]

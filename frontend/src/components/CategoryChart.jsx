@@ -21,7 +21,7 @@ const COLORS = [
 ];
 
 
-function CategoryChart({ refreshTrigger }) {
+function CategoryChart({ refreshTrigger, selectedMonth }) {
 
   const [data, setData] = useState([]);
 
@@ -47,10 +47,11 @@ function CategoryChart({ refreshTrigger }) {
 
 
       try {
+        const url = selectedMonth
+          ? `/api/transactions/category-summary/?month=${selectedMonth}`
+          : "/api/transactions/category-summary/";
 
-        const response = await apiFetch(
-  "/api/transactions/category-summary/"
-);
+        const response = await apiFetch(url);
 
 
         if (!response.ok) {
@@ -100,7 +101,7 @@ function CategoryChart({ refreshTrigger }) {
 
     fetchCategorySummary();
 
-  }, [refreshTrigger]);
+  }, [refreshTrigger, selectedMonth]);
 
 
   // =========================

@@ -89,6 +89,59 @@ class TransactionDetailView(
         )
 
 
+def parse_month_param(month_param):
+    """
+    Parses a 'YYYY-MM' string or defaults to current year and month.
+    Returns (year, month, month_str, start_date, end_date)
+    """
+    today = date.today()
+    if month_param:
+        try:
+            parts = str(month_param).strip().split("-")
+            year = int(parts[0])
+            month = int(parts[1])
+            if 1 <= month <= 12 and 1900 <= year <= 2100:
+                month_str = f"{year:04d}-{month:02d}"
+            else:
+                year, month = today.year, today.month
+                month_str = f"{year:04d}-{month:02d}"
+        except Exception:
+            year, month = today.year, today.month
+            month_str = f"{year:04d}-{month:02d}"
+    else:
+        year, month = today.year, today.month
+        month_str = f"{year:04d}-{month:02d}"
+
+    start_date = date(year, month, 1)
+    if month == 12:
+        end_date = date(year + 1, 1, 1)
+    else:
+        end_date = date(year, month + 1, 1)
+
+    return year, month, month_str, start_date, end_date
+
+
+def get_prev_month_range(year, month):
+    """
+    Returns (prev_year, prev_month, prev_month_str, prev_start_date, prev_end_date)
+    """
+    if month == 1:
+        prev_year = year - 1
+        prev_month = 12
+    else:
+        prev_year = year
+        prev_month = month - 1
+
+    prev_month_str = f"{prev_year:04d}-{prev_month:02d}"
+    prev_start_date = date(prev_year, prev_month, 1)
+    if prev_month == 12:
+        prev_end_date = date(prev_year + 1, 1, 1)
+    else:
+        prev_end_date = date(prev_year, prev_month + 1, 1)
+
+    return prev_year, prev_month, prev_month_str, prev_start_date, prev_end_date
+
+
 # =========================
 # FINANCIAL SUMMARY
 # =========================
@@ -97,14 +150,64 @@ class FinancialSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
         user = request.user
+        month_param = request.query_params.get("month")
+        year, month, month_str, start_date, end_date = parse_month_param(month_param)
 
         # =========================
-        # TOTAL INCOME
+        # MONTHLY INCOME (Selected Month)
         # =========================
+        monthly_income = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.INCOME,
+                date__gte=start_date,
+                date__lt=end_date
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
 
-        income = (
+        # =========================
+        # MONTHLY EXPENSES (Selected Month)
+        # =========================
+        monthly_expenses = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.EXPENSE,
+                date__gte=start_date,
+                date__lt=end_date
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        # =========================
+        # MONTHLY SAVINGS (Selected Month)
+        # =========================
+        monthly_savings = (
+            Savings.objects
+            .filter(
+                user=user,
+                created_at__gte=start_date,
+                created_at__lt=end_date
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        # =========================
+        # ALL-TIME TOTALS (Cumulative Balance)
+        # =========================
+        all_time_income = (
             Transaction.objects
             .filter(
                 user=user,
@@ -116,11 +219,7 @@ class FinancialSummaryView(APIView):
             or 0
         )
 
-        # =========================
-        # TOTAL EXPENSES
-        # =========================
-
-        expenses = (
+        all_time_expenses = (
             Transaction.objects
             .filter(
                 user=user,
@@ -132,36 +231,37 @@ class FinancialSummaryView(APIView):
             or 0
         )
 
-        # =========================
-        # TOTAL SAVINGS
-        # =========================
-
-        savings = (
+        total_savings = (
             Savings.objects
-            .filter(
-                user=user
-            )
+            .filter(user=user)
             .aggregate(
                 total=Sum("amount")
             )["total"]
             or 0
         )
 
-        # =========================
-        # TOTAL BALANCE
-        # =========================
-
         total_balance = (
-            income
-            - expenses
-            - savings
+            all_time_income
+            - all_time_expenses
+            - total_savings
+        )
+
+        monthly_balance = (
+            monthly_income
+            - monthly_expenses
+            - monthly_savings
         )
 
         return Response({
+            "month": month_str,
             "total_balance": total_balance,
-            "income": income,
-            "expenses": expenses,
-            "savings": savings,
+            "income": monthly_income,
+            "expenses": monthly_expenses,
+            "savings": monthly_savings,
+            "monthly_balance": monthly_balance,
+            "all_time_income": all_time_income,
+            "all_time_expenses": all_time_expenses,
+            "total_savings": total_savings,
         })
 
 
@@ -173,14 +273,17 @@ class CategorySpendingSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
         user = request.user
+        month_param = request.query_params.get("month")
+        year, month, month_str, start_date, end_date = parse_month_param(month_param)
 
         category_data = (
             Transaction.objects
             .filter(
                 user=user,
-                type=Transaction.TransactionType.EXPENSE
+                type=Transaction.TransactionType.EXPENSE,
+                date__gte=start_date,
+                date__lt=end_date
             )
             .values(
                 "category__id",
@@ -212,14 +315,17 @@ class SpendingSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
         user = request.user
+        month_param = request.query_params.get("month")
+        year, month, month_str, start_date, end_date = parse_month_param(month_param)
 
         spending_data = (
             Transaction.objects
             .filter(
                 user=user,
-                type=Transaction.TransactionType.EXPENSE
+                type=Transaction.TransactionType.EXPENSE,
+                date__gte=start_date,
+                date__lt=end_date
             )
             .annotate(
                 spending_date=TruncDate("date")
@@ -533,18 +639,21 @@ class ReportsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
         user = request.user
+        month_param = request.query_params.get("month")
+        year, month, month_str, start_date, end_date = parse_month_param(month_param)
+        prev_year, prev_month, prev_month_str, prev_start_date, prev_end_date = get_prev_month_range(year, month)
 
         # =========================
-        # OVERVIEW
+        # SELECTED MONTH METRICS
         # =========================
-
         income = (
             Transaction.objects
             .filter(
                 user=user,
-                type=Transaction.TransactionType.INCOME
+                type=Transaction.TransactionType.INCOME,
+                date__gte=start_date,
+                date__lt=end_date
             )
             .aggregate(
                 total=Sum("amount")
@@ -556,7 +665,9 @@ class ReportsView(APIView):
             Transaction.objects
             .filter(
                 user=user,
-                type=Transaction.TransactionType.EXPENSE
+                type=Transaction.TransactionType.EXPENSE,
+                date__gte=start_date,
+                date__lt=end_date
             )
             .aggregate(
                 total=Sum("amount")
@@ -566,7 +677,11 @@ class ReportsView(APIView):
 
         savings = (
             Savings.objects
-            .filter(user=user)
+            .filter(
+                user=user,
+                created_at__gte=start_date,
+                created_at__lt=end_date
+            )
             .aggregate(
                 total=Sum("amount")
             )["total"]
@@ -582,9 +697,217 @@ class ReportsView(APIView):
         )
 
         # =========================
-        # MONTHLY REPORT
+        # PREVIOUS MONTH METRICS
         # =========================
+        prev_income = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.INCOME,
+                date__gte=prev_start_date,
+                date__lt=prev_end_date
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
 
+        prev_expenses = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.EXPENSE,
+                date__gte=prev_start_date,
+                date__lt=prev_end_date
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        prev_savings = (
+            Savings.objects
+            .filter(
+                user=user,
+                created_at__gte=prev_start_date,
+                created_at__lt=prev_end_date
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        prev_balance = prev_income - prev_expenses - prev_savings
+
+        prev_savings_rate = (
+            (float(prev_savings) / float(prev_income)) * 100
+            if prev_income > 0
+            else 0
+        )
+
+        # =========================
+        # MONTH-OVER-MONTH COMPARISON
+        # =========================
+        income_diff = income - prev_income
+        income_pct_change = (
+            ((float(income) - float(prev_income)) / float(prev_income) * 100)
+            if prev_income > 0
+            else (100.0 if income > 0 else 0.0)
+        )
+
+        expense_diff = expenses - prev_expenses
+        expense_pct_change = (
+            ((float(expenses) - float(prev_expenses)) / float(prev_expenses) * 100)
+            if prev_expenses > 0
+            else (100.0 if expenses > 0 else 0.0)
+        )
+
+        savings_diff = savings - prev_savings
+        savings_pct_change = (
+            ((float(savings) - float(prev_savings)) / float(prev_savings) * 100)
+            if prev_savings > 0
+            else (100.0 if savings > 0 else 0.0)
+        )
+
+        comparison = {
+            "prev_month": prev_month_str,
+            "income": {
+                "current": income,
+                "previous": prev_income,
+                "diff": income_diff,
+                "pct_change": round(income_pct_change, 2),
+            },
+            "expenses": {
+                "current": expenses,
+                "previous": prev_expenses,
+                "diff": expense_diff,
+                "pct_change": round(expense_pct_change, 2),
+            },
+            "savings": {
+                "current": savings,
+                "previous": prev_savings,
+                "diff": savings_diff,
+                "pct_change": round(savings_pct_change, 2),
+            },
+            "savings_rate": {
+                "current": round(savings_rate, 2),
+                "previous": round(prev_savings_rate, 2),
+                "diff": round(savings_rate - prev_savings_rate, 2),
+            },
+            "balance": {
+                "current": balance,
+                "previous": prev_balance,
+                "diff": balance - prev_balance,
+            },
+        }
+
+        # =========================
+        # ALL-TIME TOTALS
+        # =========================
+        all_time_income = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.INCOME
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+        all_time_expenses = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.EXPENSE
+            )
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+        all_time_savings = (
+            Savings.objects
+            .filter(user=user)
+            .aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+        all_time_balance = all_time_income - all_time_expenses - all_time_savings
+
+        # =========================
+        # CATEGORY SPENDING COMPARISON
+        # =========================
+        curr_category_qs = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.EXPENSE,
+                date__gte=start_date,
+                date__lt=end_date
+            )
+            .values("category__id", "category__name")
+            .annotate(total=Sum("amount"))
+        )
+        curr_cat_map = {
+            item["category__id"]: {
+                "name": item["category__name"],
+                "total": item["total"]
+            }
+            for item in curr_category_qs
+        }
+
+        prev_category_qs = (
+            Transaction.objects
+            .filter(
+                user=user,
+                type=Transaction.TransactionType.EXPENSE,
+                date__gte=prev_start_date,
+                date__lt=prev_end_date
+            )
+            .values("category__id", "category__name")
+            .annotate(total=Sum("amount"))
+        )
+        prev_cat_map = {
+            item["category__id"]: {
+                "name": item["category__name"],
+                "total": item["total"]
+            }
+            for item in prev_category_qs
+        }
+
+        all_cat_ids = set(curr_cat_map.keys()).union(set(prev_cat_map.keys()))
+        categories = []
+        for cat_id in all_cat_ids:
+            name = (
+                curr_cat_map.get(cat_id, {}).get("name") or
+                prev_cat_map.get(cat_id, {}).get("name")
+            )
+            c_val = curr_cat_map.get(cat_id, {}).get("total", 0)
+            p_val = prev_cat_map.get(cat_id, {}).get("total", 0)
+            diff = c_val - p_val
+            pct = (
+                ((float(c_val) - float(p_val)) / float(p_val) * 100)
+                if p_val > 0
+                else (100.0 if c_val > 0 else 0.0)
+            )
+            categories.append({
+                "id": cat_id,
+                "name": name,
+                "value": c_val,
+                "prev_value": p_val,
+                "diff": diff,
+                "pct_change": round(pct, 2),
+            })
+        categories.sort(key=lambda x: x["value"], reverse=True)
+
+        # =========================
+        # MULTI-MONTH HISTORICAL TRENDS
+        # =========================
         monthly_data = (
             Transaction.objects
             .filter(user=user)
@@ -599,25 +922,22 @@ class ReportsView(APIView):
         )
 
         monthly_map = {}
-
         for item in monthly_data:
+            if item["month"]:
+                m_str = item["month"].strftime("%Y-%m")
+                if m_str not in monthly_map:
+                    monthly_map[m_str] = {
+                        "month": m_str,
+                        "income": 0,
+                        "expenses": 0,
+                        "savings": 0
+                    }
 
-            month = item["month"].strftime("%Y-%m")
+                if item["type"] == Transaction.TransactionType.INCOME:
+                    monthly_map[m_str]["income"] = item["total"]
+                else:
+                    monthly_map[m_str]["expenses"] = item["total"]
 
-            if month not in monthly_map:
-                monthly_map[month] = {
-                    "month": month,
-                    "income": 0,
-                    "expenses": 0,
-                }
-
-            if item["type"] == Transaction.TransactionType.INCOME:
-                monthly_map[month]["income"] = item["total"]
-
-            else:
-                monthly_map[month]["expenses"] = item["total"]
-
-        # Add savings to monthly data
         monthly_savings = (
             Savings.objects
             .filter(user=user)
@@ -632,88 +952,74 @@ class ReportsView(APIView):
         )
 
         for item in monthly_savings:
+            if item["month"]:
+                m_str = item["month"].strftime("%Y-%m")
+                if m_str not in monthly_map:
+                    monthly_map[m_str] = {
+                        "month": m_str,
+                        "income": 0,
+                        "expenses": 0,
+                        "savings": 0
+                    }
+                monthly_map[m_str]["savings"] = item["total"]
 
-            month = item["month"].strftime("%Y-%m")
+        # Ensure current and selected months are in monthly_map
+        if month_str not in monthly_map:
+            monthly_map[month_str] = {
+                "month": month_str,
+                "income": income,
+                "expenses": expenses,
+                "savings": savings
+            }
 
-            if month not in monthly_map:
-                monthly_map[month] = {
-                    "month": month,
-                    "income": 0,
-                    "expenses": 0,
-                }
+        if prev_month_str not in monthly_map:
+            monthly_map[prev_month_str] = {
+                "month": prev_month_str,
+                "income": prev_income,
+                "expenses": prev_expenses,
+                "savings": prev_savings
+            }
 
-            monthly_map[month]["savings"] = item["total"]
+        today_month_str = date.today().strftime("%Y-%m")
+        if today_month_str not in monthly_map:
+            monthly_map[today_month_str] = {
+                "month": today_month_str,
+                "income": 0,
+                "expenses": 0,
+                "savings": 0
+            }
 
         monthly = []
-
-        for month, data in sorted(monthly_map.items()):
-
+        for m_key, data in sorted(monthly_map.items()):
             monthly.append({
-                "month": month,
+                "month": m_key,
                 "income": data.get("income", 0),
                 "expenses": data.get("expenses", 0),
                 "savings": data.get("savings", 0),
+                "net": data.get("income", 0) - data.get("expenses", 0) - data.get("savings", 0),
             })
 
-        # =========================
-        # CATEGORY SPENDING
-        # =========================
-
-        category_data = (
-            Transaction.objects
-            .filter(
-                user=user,
-                type=Transaction.TransactionType.EXPENSE
-            )
-            .values(
-                "category__id",
-                "category__name"
-            )
-            .annotate(
-                total=Sum("amount")
-            )
-            .order_by("-total")
-        )
-
-        categories = []
-
-        for item in category_data:
-
-            categories.append({
-                "id": item["category__id"],
-                "name": item["category__name"],
-                "value": item["total"],
-            })
+        available_months = sorted(list(monthly_map.keys()), reverse=True)
 
         # =========================
-        # BUDGET PERFORMANCE
+        # BUDGET PERFORMANCE (for selected month)
         # =========================
-
         budgets = Budget.objects.filter(
-            user=user
-        ).order_by("-month")
+            user=user,
+            month__gte=start_date,
+            month__lt=end_date
+        ).order_by("category__name")
+
+        if not budgets.exists():
+            budgets = Budget.objects.filter(user=user).order_by("-month")
 
         budget_result = []
-
         for budget in budgets:
-
-            start_date = budget.month
-
-            if start_date.month == 12:
-
-                end_date = date(
-                    start_date.year + 1,
-                    1,
-                    1
-                )
-
+            b_start = budget.month
+            if b_start.month == 12:
+                b_end = date(b_start.year + 1, 1, 1)
             else:
-
-                end_date = date(
-                    start_date.year,
-                    start_date.month + 1,
-                    1
-                )
+                b_end = date(b_start.year, b_start.month + 1, 1)
 
             spent = (
                 Transaction.objects
@@ -721,8 +1027,8 @@ class ReportsView(APIView):
                     user=user,
                     category=budget.category,
                     type=Transaction.TransactionType.EXPENSE,
-                    date__gte=start_date,
-                    date__lt=end_date,
+                    date__gte=b_start,
+                    date__lt=b_end,
                 )
                 .aggregate(
                     total=Sum("amount")
@@ -731,19 +1037,15 @@ class ReportsView(APIView):
             )
 
             percentage = (
-                float(spent) /
-                float(budget.amount) *
-                100
+                float(spent) / float(budget.amount) * 100
                 if budget.amount > 0
                 else 0
             )
 
             if percentage >= 100:
                 status = "exceeded"
-
             elif percentage >= 80:
                 status = "near_limit"
-
             else:
                 status = "healthy"
 
@@ -769,44 +1071,31 @@ class ReportsView(APIView):
         # =========================
         # GOALS
         # =========================
-
         goals = Goal.objects.filter(
             user=user
         ).order_by("target_date")
 
-        total_savings = savings
+        total_savings = all_time_savings
 
         goal_result = []
-
         for goal in goals:
-
             target = goal.target_amount
-
-            # Savings are shared globally.
-            # For now, show the user's total
-            # savings against each goal.
             saved_amount = min(
                 total_savings,
                 target
             )
-
             remaining = max(
                 target - saved_amount,
                 0
             )
-
             percentage = (
-                float(saved_amount) /
-                float(target) *
-                100
+                float(saved_amount) / float(target) * 100
                 if target > 0
                 else 0
             )
-
             completed = (
                 saved_amount >= target
             )
-
             goal_result.append({
                 "id": goal.id,
                 "name": goal.name,
@@ -824,8 +1113,9 @@ class ReportsView(APIView):
         # =========================
         # RESPONSE
         # =========================
-
         return Response({
+            "selected_month": month_str,
+            "available_months": available_months,
             "overview": {
                 "income": income,
                 "expenses": expenses,
@@ -835,14 +1125,15 @@ class ReportsView(APIView):
                     savings_rate,
                     2
                 ),
+                "all_time_income": all_time_income,
+                "all_time_expenses": all_time_expenses,
+                "all_time_savings": all_time_savings,
+                "all_time_balance": all_time_balance,
             },
-
+            "comparison": comparison,
             "monthly": monthly,
-
             "categories": categories,
-
             "budgets": budget_result,
-
             "goals": goal_result,
         })
 

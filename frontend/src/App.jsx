@@ -18,8 +18,12 @@ import GoalsPage from "./components/GoalsPage";
 import ReportsPage from "./components/ReportsPage";
 import Notifications from "./components/Notifications";
 import AIAssistant from "./components/AIAssistant";
+import MonthSelector from "./components/MonthSelector";
+
+import LandingPage from "./components/LandingPage";
 
 function App() {
+  
   // =========================
   // TRANSACTION MODAL
   // =========================
@@ -80,6 +84,17 @@ const [editingSavingsId, setEditingSavingsId] =
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // =========================
+  // SELECTED MONTH STATE
+  // =========================
+
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+  });
+
+  // =========================
   // FINANCIAL SUMMARY
   // =========================
 
@@ -88,6 +103,7 @@ const [editingSavingsId, setEditingSavingsId] =
     income: 0,
     expenses: 0,
     savings: 0,
+    monthly_balance: 0,
   });
 
   const [loadingSummary, setLoadingSummary] =
@@ -108,6 +124,7 @@ const [editingSavingsId, setEditingSavingsId] =
           income: 0,
           expenses: 0,
           savings: 0,
+          monthly_balance: 0,
         });
 
         setLoadingSummary(false);
@@ -117,9 +134,11 @@ const [editingSavingsId, setEditingSavingsId] =
       setLoadingSummary(true);
 
       try {
-        const response = await apiFetch(
-  "/api/transactions/summary/"
-);
+        const url = selectedMonth
+          ? `/api/transactions/summary/?month=${selectedMonth}`
+          : "/api/transactions/summary/";
+
+        const response = await apiFetch(url);
 
         if (!response.ok) {
           throw new Error(
@@ -134,6 +153,7 @@ const [editingSavingsId, setEditingSavingsId] =
           income: Number(data.income || 0),
           expenses: Number(data.expenses || 0),
           savings: Number(data.savings || 0),
+          monthly_balance: Number(data.monthly_balance || 0),
         });
       } catch (error) {
         console.error(
@@ -146,6 +166,7 @@ const [editingSavingsId, setEditingSavingsId] =
           income: 0,
           expenses: 0,
           savings: 0,
+          monthly_balance: 0,
         });
       } finally {
         setLoadingSummary(false);
@@ -153,7 +174,7 @@ const [editingSavingsId, setEditingSavingsId] =
     };
 
     fetchSummary();
-  }, [user, refreshTrigger]);
+  }, [user, refreshTrigger, selectedMonth]);
 
   // =========================
   // LOGIN SUCCESS
@@ -429,11 +450,28 @@ const openEditSavings = async () => {
   }
 };
   // =========================
-  // RENDER
-  // =========================
+// RENDER
+// =========================
 
+if (!user) {
   return (
-    <div className="app">
+    <>
+      <LandingPage
+        onGetStarted={() => setShowAuthModal(true)}
+      />
+
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
+    </>
+  );
+}
+
+return (
+  <div className="app">
 
       {/* ========================= */}
       {/* SIDEBAR */}
@@ -514,6 +552,22 @@ const openEditSavings = async () => {
             />
 
             {/* ========================= */}
+            {/* DASHBOARD MONTH CONTROLS */}
+            {/* ========================= */}
+            <div className="dashboard-month-banner">
+              <div className="dashboard-month-info">
+                <span className="dashboard-month-label">ACTIVE VIEW</span>
+                <p className="dashboard-month-description">
+                  Showing financial summary & analytics for selected period
+                </p>
+              </div>
+              <MonthSelector
+                selectedMonth={selectedMonth}
+                onChangeMonth={setSelectedMonth}
+              />
+            </div>
+
+            {/* ========================= */}
             {/* FINANCIAL SUMMARY */}
             {/* ========================= */}
 
@@ -538,7 +592,7 @@ const openEditSavings = async () => {
               {/* INCOME */}
 
               <StatCard
-                title="Income"
+                title="Monthly Income"
                 amount={
                   loadingSummary
                     ? "Loading..."
@@ -554,7 +608,7 @@ const openEditSavings = async () => {
               {/* EXPENSES */}
 
               <StatCard
-                title="Expenses"
+                title="Monthly Expenses"
                 amount={
                   loadingSummary
                     ? "Loading..."
@@ -570,7 +624,7 @@ const openEditSavings = async () => {
               {/* SAVINGS */}
 
               <StatCard
-  title="Savings"
+  title="Monthly Savings"
   amount={
     loadingSummary
       ? "Loading..."
@@ -597,11 +651,17 @@ const openEditSavings = async () => {
                 refreshTrigger={
                   refreshTrigger
                 }
+                selectedMonth={
+                  selectedMonth
+                }
               />
 
               <CategoryChart
                 refreshTrigger={
                   refreshTrigger
+                }
+                selectedMonth={
+                  selectedMonth
                 }
               />
 

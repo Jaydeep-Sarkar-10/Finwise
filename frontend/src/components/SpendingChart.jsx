@@ -12,7 +12,7 @@ import {
 } from "recharts";
 
 
-function SpendingChart({ refreshTrigger }) {
+function SpendingChart({ refreshTrigger, selectedMonth }) {
 
   const [data, setData] = useState([]);
 
@@ -38,10 +38,11 @@ function SpendingChart({ refreshTrigger }) {
 
 
       try {
+        const url = selectedMonth
+          ? `/api/transactions/spending-summary/?month=${selectedMonth}`
+          : "/api/transactions/spending-summary/";
 
-        const response = await apiFetch(
-  "/api/transactions/spending-summary/"
-);
+        const response = await apiFetch(url);
 
 
         if (!response.ok) {
@@ -88,7 +89,7 @@ function SpendingChart({ refreshTrigger }) {
 
     fetchSpendingSummary();
 
-  }, [refreshTrigger]);
+  }, [refreshTrigger, selectedMonth]);
 
 
   // =========================
