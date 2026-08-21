@@ -19,6 +19,7 @@ import {
 
 import { useState } from "react";
 import SpecularButton from "./SpecularButton";
+import CurvedLoop from "./CurvedLoop";
 
 function LandingPage({ onGetStarted, onLogin }) {
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -790,6 +791,14 @@ function LandingPage({ onGetStarted, onLogin }) {
           />
 
         </div>
+
+        <CurvedLoop 
+          marqueeText="Track ✦ Budget ✦ Save ✦ Improve ✦ Finwise ✦ "
+          speed={1.5}
+          curveAmount={350}
+          direction="right"
+          interactive={true}
+        />
 
       </section>
 
