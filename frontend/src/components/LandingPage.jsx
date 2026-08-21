@@ -98,12 +98,7 @@ function LandingPage({ onGetStarted, onLogin }) {
 
           <div className="landing-nav-actions">
 
-            <button
-              className="landing-login-btn"
-              onClick={onLogin}
-            >
-              Log in
-            </button>
+
 
             <SpecularButton
               className="landing-nav-cta"
@@ -167,12 +162,7 @@ function LandingPage({ onGetStarted, onLogin }) {
               AI Assistant
             </button>
 
-            <button
-              className="mobile-login"
-              onClick={onLogin}
-            >
-              Log in
-            </button>
+
 
             <SpecularButton
               className="mobile-cta"
