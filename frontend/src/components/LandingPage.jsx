@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import SpecularButton from "./SpecularButton";
 import CurvedLoop from "./CurvedLoop";
+import Masonry from "./Masonry";
 
 function LandingPage({ onGetStarted, onLogin }) {
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -517,44 +518,84 @@ function LandingPage({ onGetStarted, onLogin }) {
         </div>
 
 
-        <div className="landing-features-grid">
-
-          <FeatureCard
-            icon={<CircleDollarSign size={22} />}
-            title="Track every transaction"
-            description="Keep your income and expenses organized so you always know where your money is going."
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <Masonry
+            items={[
+              {
+                id: "1",
+                height: 260,
+                content: (
+                  <FeatureCard
+                    icon={<CircleDollarSign size={22} />}
+                    title="Track every transaction"
+                    description="Keep your income and expenses organized so you always know where your money is going."
+                  />
+                )
+              },
+              {
+                id: "2",
+                height: 260,
+                content: (
+                  <FeatureCard
+                    icon={<BarChart3 size={22} />}
+                    title="Understand your spending"
+                    description="Visualize your financial habits with clear charts and meaningful analytics."
+                  />
+                )
+              },
+              {
+                id: "3",
+                height: 260,
+                content: (
+                  <FeatureCard
+                    icon={<PiggyBank size={22} />}
+                    title="Build your savings"
+                    description="Set savings goals and monitor your progress toward the things that matter to you."
+                  />
+                )
+              },
+              {
+                id: "4",
+                height: 260,
+                content: (
+                  <FeatureCard
+                    icon={<ShieldCheck size={22} />}
+                    title="Stay within budget"
+                    description="Create category-based budgets and know when your spending starts approaching the limit."
+                  />
+                )
+              },
+              {
+                id: "5",
+                height: 260,
+                content: (
+                  <FeatureCard
+                    icon={<Bell size={22} />}
+                    title="Never miss important events"
+                    description="Receive useful reminders and notifications about budgets, goals, and your financial activity."
+                  />
+                )
+              },
+              {
+                id: "6",
+                height: 260,
+                content: (
+                  <FeatureCard
+                    icon={<Bot size={22} />}
+                    title="Ask your AI assistant"
+                    description="Get personalized answers about your finances using the data already available in Finwise."
+                  />
+                )
+              }
+            ]}
+            ease="power3.out"
+            duration={0.8}
+            stagger={0.1}
+            animateFrom="bottom"
+            scaleOnHover={true}
+            hoverScale={0.98}
+            blurToFocus={true}
           />
-
-          <FeatureCard
-            icon={<BarChart3 size={22} />}
-            title="Understand your spending"
-            description="Visualize your financial habits with clear charts and meaningful analytics."
-          />
-
-          <FeatureCard
-            icon={<PiggyBank size={22} />}
-            title="Build your savings"
-            description="Set savings goals and monitor your progress toward the things that matter to you."
-          />
-
-          <FeatureCard
-            icon={<ShieldCheck size={22} />}
-            title="Stay within budget"
-            description="Create category-based budgets and know when your spending starts approaching the limit."
-          />
-
-          <FeatureCard
-            icon={<Bell size={22} />}
-            title="Never miss important events"
-            description="Receive useful reminders and notifications about budgets, goals, and your financial activity."
-          />
-
-          <FeatureCard
-            icon={<Bot size={22} />}
-            title="Ask your AI assistant"
-            description="Get personalized answers about your finances using the data already available in Finwise."
-          />
-
         </div>
 
       </section>
@@ -932,12 +973,14 @@ function LandingPage({ onGetStarted, onLogin }) {
         <div className="landing-footer-bottom">
 
           <span>
-            © 2026 Finwise. Built to make
-            money management simpler.
+            © {new Date().getFullYear()} Jaydeep Sarkar. All rights reserved.
           </span>
 
-          <span>
-            Smart money. Better decisions.
+          <span style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            Contact: 
+            <a href="mailto:jaydeepsarkar5050@gmail.com" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+              jaydeepsarkar5050@gmail.com
+            </a>
           </span>
 
         </div>

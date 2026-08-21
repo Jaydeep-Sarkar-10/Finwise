@@ -1,0 +1,18 @@
+.list {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.item-wrapper {
+  position: absolute;
+  will-change: transform, width, height, opacity;
+  padding: 12px;
+  top: 0;
+  left: 0;
+  display: flex;
+}
+
+.item-wrapper > * {
+  flex: 1;
+}
