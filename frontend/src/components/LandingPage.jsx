@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { useState } from "react";
+import SpecularButton from "./SpecularButton";
 
 function LandingPage({ onGetStarted, onLogin }) {
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -102,13 +103,16 @@ function LandingPage({ onGetStarted, onLogin }) {
               Log in
             </button>
 
-            <button
+            <SpecularButton
               className="landing-nav-cta"
               onClick={onGetStarted}
+              size="sm"
             >
-              Get Started
-              <ArrowRight size={16} />
-            </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Get Started
+                <ArrowRight size={16} />
+              </div>
+            </SpecularButton>
 
           </div>
 
@@ -168,13 +172,16 @@ function LandingPage({ onGetStarted, onLogin }) {
               Log in
             </button>
 
-            <button
+            <SpecularButton
               className="mobile-cta"
               onClick={onGetStarted}
+              size="sm"
             >
-              Get Started
-              <ArrowRight size={16} />
-            </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Get Started
+                <ArrowRight size={16} />
+              </div>
+            </SpecularButton>
 
           </div>
 
@@ -224,15 +231,15 @@ function LandingPage({ onGetStarted, onLogin }) {
 
             <div className="landing-hero-actions">
 
-              <button
+              <SpecularButton
                 className="landing-primary-btn"
                 onClick={onGetStarted}
               >
-                Get Started
-
-                <ArrowRight size={18} />
-
-              </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Get Started
+                  <ArrowRight size={18} />
+                </div>
+              </SpecularButton>
 
 
               <button
@@ -810,13 +817,15 @@ function LandingPage({ onGetStarted, onLogin }) {
             clarity and confidence.
           </p>
 
-          <button
+          <SpecularButton
             className="landing-cta-btn"
             onClick={onGetStarted}
           >
-            Get started with Finwise
-            <ArrowRight size={18} />
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Get started with Finwise
+              <ArrowRight size={18} />
+            </div>
+          </SpecularButton>
 
         </div>
 
