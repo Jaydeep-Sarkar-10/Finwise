@@ -5,6 +5,19 @@ import { apiFetch } from "../utils/api";
 function AddTransactionModal({ onClose, onTransactionAdded }) {
   const [type, setType] = useState("expense");
 
+  // Helper to switch type and auto-assign income category
+  const handleTypeChange = (newType) => {
+    setType(newType);
+    if (newType === "income") {
+      const incomeCat = categories.find(
+        (c) => c.name.toLowerCase() === "income"
+      );
+      setCategory(incomeCat ? String(incomeCat.id) : "");
+    } else {
+      setCategory("");
+    }
+  };
+
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -59,10 +72,19 @@ function AddTransactionModal({ onClose, onTransactionAdded }) {
   setSaving(true);
 
   try {
+    // For income, always resolve to the "Income" category id
+    let resolvedCategory = category;
+    if (type === "income") {
+      const incomeCat = categories.find(
+        (c) => c.name.toLowerCase() === "income"
+      );
+      resolvedCategory = incomeCat ? String(incomeCat.id) : category;
+    }
+
     const transactionData = {
       amount: amount,
       type: type,
-      category: Number(category),
+      category: Number(resolvedCategory),
       description: description,
       date: date,
     };
@@ -151,7 +173,7 @@ function AddTransactionModal({ onClose, onTransactionAdded }) {
                   ? "type-btn active-expense"
                   : "type-btn"
               }
-              onClick={() => setType("expense")}
+              onClick={() => handleTypeChange("expense")}
             >
               Expense
             </button>
@@ -163,7 +185,7 @@ function AddTransactionModal({ onClose, onTransactionAdded }) {
                   ? "type-btn active-income"
                   : "type-btn"
               }
-              onClick={() => setType("income")}
+              onClick={() => handleTypeChange("income")}
             >
               Income
             </button>
@@ -198,39 +220,46 @@ function AddTransactionModal({ onClose, onTransactionAdded }) {
           </div>
 
 
-          {/* Category */}
+          {/* Category — only shown for Expense */}
 
-          <div className="form-group">
+          {type === "expense" && (
+            <div className="form-group">
 
-            <label>Category</label>
+              <label>Category</label>
 
-            <select
-              value={category}
-              onChange={(e) =>
-                setCategory(e.target.value)
-              }
-              required
-            >
+              <select
+                value={category}
+                onChange={(e) =>
+                  setCategory(e.target.value)
+                }
+                required
+              >
 
-              <option value="">
-                {loadingCategories
-                  ? "Loading categories..."
-                  : "Select category"}
-              </option>
+                <option value="">
+                  {loadingCategories
+                    ? "Loading categories..."
+                    : "Select category"}
+                </option>
 
-              {!loadingCategories &&
-                categories.map((cat) => (
-                  <option
-                    key={cat.id}
-                    value={cat.id}
-                  >
-                    {cat.name}
-                  </option>
-                ))}
+                {!loadingCategories &&
+                  categories
+                    .filter(
+                      (cat) =>
+                        cat.name.toLowerCase() !== "income"
+                    )
+                    .map((cat) => (
+                      <option
+                        key={cat.id}
+                        value={cat.id}
+                      >
+                        {cat.name}
+                      </option>
+                    ))}
 
-            </select>
+              </select>
 
-          </div>
+            </div>
+          )}
 
 
           {/* Description */}
