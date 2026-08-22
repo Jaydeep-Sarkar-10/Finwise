@@ -1,9 +1,10 @@
-import { Plus, UserRound } from "lucide-react";
+import { Menu, Plus, UserRound } from "lucide-react";
 import Notifications from "./Notifications";
 
 function Topbar({
   onAddTransaction,
   onProfileClick,
+  onMenuToggle,
   user,
 }) {
 
@@ -39,11 +40,20 @@ function Topbar({
   return (
     <header className="topbar">
 
+      {/* HAMBURGER — mobile only, hidden on desktop via CSS */}
+      <button
+        className="hamburger-btn"
+        onClick={onMenuToggle}
+        aria-label="Open navigation menu"
+      >
+        <Menu size={20} />
+      </button>
+
       {/* =========================
           WELCOME
       ========================= */}
 
-      <div>
+      <div className="topbar-welcome">
 
         <p className="welcome-small">
           {greeting} {emoji}
@@ -89,7 +99,7 @@ function Topbar({
           onClick={onAddTransaction}
         >
           <Plus size={18} />
-          Add Transaction
+          <span className="add-btn-label">Add Transaction</span>
         </button>
 
       </div>

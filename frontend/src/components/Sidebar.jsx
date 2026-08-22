@@ -19,6 +19,8 @@ function Sidebar({
   onAuthClick,
   currentPage,
   onNavigate,
+  isOpen,
+  onClose,
 }) {
 
   // =========================
@@ -38,7 +40,17 @@ function Sidebar({
 
 
   return (
-    <aside className="sidebar">
+    <>
+      {/* Mobile overlay — closes sidebar when tapping outside */}
+      {isOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className="sidebar" data-open={isOpen}>
 
       {/* =========================
           LOGO
@@ -470,6 +482,7 @@ function Sidebar({
         )}
 
     </aside>
+    </>
   );
 }
 

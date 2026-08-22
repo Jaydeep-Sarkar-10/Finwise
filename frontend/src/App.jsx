@@ -84,6 +84,12 @@ const [editingSavingsId, setEditingSavingsId] =
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // =========================
+  // MOBILE SIDEBAR STATE
+  // =========================
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // =========================
   // SELECTED MONTH STATE
   // =========================
 
@@ -483,7 +489,12 @@ return (
     setShowAuthModal(true)
   }
   currentPage={currentPage}
-  onNavigate={setCurrentPage}
+  onNavigate={(page) => {
+    setCurrentPage(page);
+    setSidebarOpen(false); // close drawer on mobile nav
+  }}
+  isOpen={sidebarOpen}
+  onClose={() => setSidebarOpen(false)}
 />
 
       <main className="main-content">
@@ -547,6 +558,9 @@ return (
               }
               onProfileClick={
                 handleProfileClick
+              }
+              onMenuToggle={() =>
+                setSidebarOpen((prev) => !prev)
               }
               user={user}
             />
