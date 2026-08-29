@@ -8,6 +8,9 @@ import {
 
 import { auth } from "../firebase";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 
 function AuthModal({ onClose, onLoginSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -45,7 +48,7 @@ function AuthModal({ onClose, onLoginSuccess }) {
         }
 
         const registerResponse = await fetch(
-          "http://127.0.0.1:8000/api/auth/register/",
+          `${API_BASE_URL}/api/auth/register/`,
           {
             method: "POST",
             headers: {
@@ -75,7 +78,7 @@ function AuthModal({ onClose, onLoginSuccess }) {
         // Automatically login after signup
 
         const loginResponse = await fetch(
-          "http://127.0.0.1:8000/api/auth/login/",
+          `${API_BASE_URL}/api/auth/login/`,
           {
             method: "POST",
             headers: {
@@ -139,7 +142,7 @@ function AuthModal({ onClose, onLoginSuccess }) {
       // =========================
 
       const loginResponse = await fetch(
-        "http://127.0.0.1:8000/api/auth/login/",
+        `${API_BASE_URL}/api/auth/login/`,
         {
           method: "POST",
           headers: {
@@ -247,7 +250,7 @@ function AuthModal({ onClose, onLoginSuccess }) {
       // Send token to Django
 
       const response = await fetch(
-        "http://127.0.0.1:8000/api/auth/google/",
+        `${API_BASE_URL}/api/auth/google/`,
         {
           method: "POST",
           headers: {
