@@ -37,8 +37,16 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-_allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost")
-ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(",") if h.strip()]
+_allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
+_allowed_hosts_parsed = [h.strip() for h in _allowed_hosts_env.split(",") if h.strip()]
+
+# Always allow the known production domain + local dev hosts
+ALLOWED_HOSTS = list({
+    "finwise-utv7.onrender.com",
+    "localhost",
+    "127.0.0.1",
+    *_allowed_hosts_parsed,
+})
 
 
 # =========================
@@ -223,6 +231,8 @@ CORS_ALLOWED_ORIGINS = _cors_prod + [
     "http://localhost:5175",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5175",
+    # Production backend — always allow self-origin calls
+    "https://finwise-utv7.onrender.com",
 ]
 
 
@@ -234,7 +244,13 @@ CORS_ALLOWED_ORIGINS = _cors_prod + [
 # (e.g. the Render backend URL and Vercel frontend URL).
 
 _csrf_env = os.getenv("CSRF_TRUSTED_ORIGINS", "")
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_env.split(",") if o.strip()]
+_csrf_from_env = [o.strip() for o in _csrf_env.split(",") if o.strip()]
+
+# Always trust the known production domain regardless of env var
+CSRF_TRUSTED_ORIGINS = list({
+    "https://finwise-utv7.onrender.com",
+    *_csrf_from_env,
+})
 
 
 # =========================
