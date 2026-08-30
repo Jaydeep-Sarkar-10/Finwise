@@ -473,15 +473,19 @@ on the financial data above.
 
 
         except APIError as e:
-            print("Gemini API Error:", e.message)
+            err_msg = getattr(e, "message", str(e))
+            err_code = getattr(e, "code", None)
+            
+            print("Gemini API Error:", err_msg)
             msg = "AI service is temporarily unavailable."
-            if e.code in (401, 403):
+            
+            if err_code in (401, 403):
                 msg = "AI service configuration error."
-            elif e.code == 429:
+            elif err_code == 429:
                 msg = "AI service is currently busy. Please try again later."
-            elif e.code == 400:
+            elif err_code == 400:
                 msg = "Invalid AI request."
-            elif e.code == 404:
+            elif err_code == 404:
                 msg = "AI service configuration error (Model not found)."
             
             return Response({"error": msg}, status=500)
