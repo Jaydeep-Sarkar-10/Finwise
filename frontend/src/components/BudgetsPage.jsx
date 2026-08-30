@@ -201,7 +201,16 @@ function BudgetsPage() {
 
       if (!response.ok) {
         console.error("Add budget error:", data);
-        throw new Error("Failed to add budget");
+        let errorMsg = data.detail || "Failed to add budget";
+        if (!data.detail && typeof data === "object") {
+          const messages = Object.entries(data).map(([field, msgs]) => {
+            return `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`;
+          });
+          if (messages.length > 0) {
+            errorMsg = messages.join(" | ");
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       setBudgets((prev) => [data, ...prev]);
@@ -213,7 +222,7 @@ function BudgetsPage() {
       setShowAddForm(false);
     } catch (error) {
       console.error("Add budget error:", error);
-      alert("Could not add budget.");
+      alert(error.message || "Could not add budget.");
     } finally {
       setAdding(false);
     }

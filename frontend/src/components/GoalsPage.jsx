@@ -152,14 +152,17 @@ function GoalsPage() {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error(
-        "Goal save error:",
-        data
-      );
-
-      throw new Error(
-        "Failed to save goal"
-      );
+      console.error("Goal save error:", data);
+      let errorMsg = data.detail || "Failed to save goal";
+      if (!data.detail && typeof data === "object") {
+        const messages = Object.entries(data).map(([field, msgs]) => {
+          return `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`;
+        });
+        if (messages.length > 0) {
+          errorMsg = messages.join(" | ");
+        }
+      }
+      throw new Error(errorMsg);
     }
 
     if (isEditing) {
@@ -187,9 +190,9 @@ function GoalsPage() {
     );
 
     alert(
-      editingGoal
+      error.message || (editingGoal
         ? "Could not update goal."
-        : "Could not create goal."
+        : "Could not create goal.")
     );
 
   } finally {

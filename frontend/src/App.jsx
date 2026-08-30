@@ -281,14 +281,17 @@ const [editingSavingsId, setEditingSavingsId] =
       const data = await response.json();
 
       if (!response.ok) {
-        console.error(
-          "Savings error:",
-          data
-        );
-
-        throw new Error(
-          "Failed to save savings."
-        );
+        console.error("Savings error:", data);
+        let errorMsg = data.detail || "Failed to save savings.";
+        if (!data.detail && typeof data === "object") {
+          const messages = Object.entries(data).map(([field, msgs]) => {
+            return `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`;
+          });
+          if (messages.length > 0) {
+            errorMsg = messages.join(" | ");
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       console.log(
@@ -305,14 +308,8 @@ const [editingSavingsId, setEditingSavingsId] =
       // Fetch new savings from backend
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
-      console.error(
-        "Savings error:",
-        error
-      );
-
-      alert(
-        "Could not add savings."
-      );
+      console.error("Savings error:", error);
+      alert(error.message || "Could not add savings.");
     }
   };
 
@@ -357,14 +354,17 @@ const handleEditSavings = async () => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error(
-        "Savings edit error:",
-        data
-      );
-
-      throw new Error(
-        "Failed to update savings."
-      );
+      console.error("Savings edit error:", data);
+      let errorMsg = data.detail || "Failed to update savings.";
+      if (!data.detail && typeof data === "object") {
+        const messages = Object.entries(data).map(([field, msgs]) => {
+          return `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`;
+        });
+        if (messages.length > 0) {
+          errorMsg = messages.join(" | ");
+        }
+      }
+      throw new Error(errorMsg);
     }
 
     console.log(
@@ -385,15 +385,8 @@ const handleEditSavings = async () => {
     );
 
   } catch (error) {
-
-    console.error(
-      "Savings edit error:",
-      error
-    );
-
-    alert(
-      "Could not update savings."
-    );
+    console.error("Savings edit error:", error);
+    alert(error.message || "Could not update savings.");
   }
 };
 

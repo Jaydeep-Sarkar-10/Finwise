@@ -127,14 +127,17 @@ try {
         await response.json();
 
       if (!response.ok) {
-        console.error(
-          "Update error:",
-          data
-        );
-
-        throw new Error(
-          "Failed to update transaction"
-        );
+        console.error("Update error:", data);
+        let errorMsg = data.detail || "Failed to update transaction.";
+        if (!data.detail && typeof data === "object") {
+          const messages = Object.entries(data).map(([field, msgs]) => {
+            return `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`;
+          });
+          if (messages.length > 0) {
+            errorMsg = messages.join(" | ");
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       console.log(
@@ -155,7 +158,7 @@ try {
       );
 
       alert(
-        "Could not update transaction."
+        error.message || "Could not update transaction."
       );
     } finally {
       setLoading(false);

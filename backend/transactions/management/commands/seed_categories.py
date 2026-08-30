@@ -3,6 +3,7 @@ from transactions.models import Category
 
 
 DEFAULT_CATEGORIES = [
+    ("Income", "dollar-sign"),
     ("Food", "utensils"),
     ("Transport", "car"),
     ("Shopping", "shopping-bag"),
