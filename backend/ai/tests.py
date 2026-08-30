@@ -44,9 +44,11 @@ class AIAssistantTests(APITestCase):
         # Setup mock
         mock_client_instance = MagicMock()
         MockClient.return_value = mock_client_instance
+        mock_chat_instance = MagicMock()
+        mock_client_instance.chats.create.return_value = mock_chat_instance
         mock_response = MagicMock()
         mock_response.text = "This is a mocked AI response."
-        mock_client_instance.models.generate_content.return_value = mock_response
+        mock_chat_instance.send_message.return_value = mock_response
 
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {"message": "What is my balance?"})
@@ -56,9 +58,10 @@ class AIAssistantTests(APITestCase):
         self.assertIn("financial_data", response.data)
         
         # Verify the model used
-        mock_client_instance.models.generate_content.assert_called_once()
-        call_kwargs = mock_client_instance.models.generate_content.call_args.kwargs
-        self.assertEqual(call_kwargs["model"], "gemini-2.5-flash")
+        mock_client_instance.chats.create.assert_called_once()
+        call_kwargs = mock_client_instance.chats.create.call_args.kwargs
+        self.assertEqual(call_kwargs["model"], "gemini-3.6-flash")
+        mock_chat_instance.send_message.assert_called_once()
 
     @patch("ai.views.genai.Client")
     def test_gemini_api_key_invalid(self, MockClient):
@@ -66,8 +69,10 @@ class AIAssistantTests(APITestCase):
         mock_client_instance = MagicMock()
         MockClient.return_value = mock_client_instance
         
+        mock_chat_instance = MagicMock()
+        mock_client_instance.chats.create.return_value = mock_chat_instance
         error = APIError(400, {"error": {"message": "API key not valid"}})
-        mock_client_instance.models.generate_content.side_effect = error
+        mock_chat_instance.send_message.side_effect = error
         
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {"message": "Hello"})
@@ -81,9 +86,11 @@ class AIAssistantTests(APITestCase):
         mock_client_instance = MagicMock()
         MockClient.return_value = mock_client_instance
         
+        mock_chat_instance = MagicMock()
+        mock_client_instance.chats.create.return_value = mock_chat_instance
         # Simulate 429 error
         error = APIError(429, {"error": {"message": "Quota exceeded"}})
-        mock_client_instance.models.generate_content.side_effect = error
+        mock_chat_instance.send_message.side_effect = error
         
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {"message": "Hello"})
@@ -97,8 +104,10 @@ class AIAssistantTests(APITestCase):
         mock_client_instance = MagicMock()
         MockClient.return_value = mock_client_instance
         
+        mock_chat_instance = MagicMock()
+        mock_client_instance.chats.create.return_value = mock_chat_instance
         # Simulate generic exception
-        mock_client_instance.models.generate_content.side_effect = Exception("Some weird error")
+        mock_chat_instance.send_message.side_effect = Exception("Some weird error")
         
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {"message": "Hello"})

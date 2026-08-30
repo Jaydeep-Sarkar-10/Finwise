@@ -431,9 +431,12 @@ on the financial data above.
                 api_key=settings.GEMINI_API_KEY
             )
 
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=financial_context
+            chat = client.chats.create(
+                model="gemini-3.6-flash"
+            )
+
+            response = chat.send_message(
+                message=financial_context
             )
 
 
