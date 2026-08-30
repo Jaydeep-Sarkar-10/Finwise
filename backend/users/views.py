@@ -21,6 +21,9 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 
+import logging
+logger = logging.getLogger(__name__)
+
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -73,6 +76,7 @@ class GoogleLoginView(APIView):
             )
 
         except Exception as e:
+            logger.error("Firebase token verification failed. Error: %s", str(e), exc_info=True)
             return Response(
                 {
                     "error": "Invalid Firebase token.",
