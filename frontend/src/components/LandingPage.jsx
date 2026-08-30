@@ -21,6 +21,7 @@ import { useState } from "react";
 import SpecularButton from "./SpecularButton";
 import CurvedLoop from "./CurvedLoop";
 import Masonry from "./Masonry";
+import logo from "../assets/finwise-logo.png";
 
 function LandingPage({ onGetStarted, onLogin }) {
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -55,11 +56,7 @@ function LandingPage({ onGetStarted, onLogin }) {
               })
             }
           >
-            <div className="landing-logo-icon">
-              <Wallet size={20} />
-            </div>
-
-            <span>Finwise</span>
+            <img src={logo} alt="Finwise" style={{ height: "32px", width: "auto" }} />
           </button>
 
 
@@ -883,13 +880,7 @@ function LandingPage({ onGetStarted, onLogin }) {
           <div className="landing-footer-brand">
 
             <div className="landing-logo">
-
-              <div className="landing-logo-icon">
-                <Wallet size={18} />
-              </div>
-
-              <span>Finwise</span>
-
+              <img src={logo} alt="Finwise" style={{ height: "32px", width: "auto" }} />
             </div>
 
             <p>

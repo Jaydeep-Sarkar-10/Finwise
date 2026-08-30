@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import logo from "../assets/finwise-logo.png";
 
 import {
   Home,
@@ -57,15 +58,7 @@ function Sidebar({
       ========================= */}
 
       <div className="logo">
-
-        <div className="logo-icon">
-          F
-        </div>
-
-        <span>
-          Finwise
-        </span>
-
+        <img src={logo} alt="Finwise" style={{ height: "32px", width: "auto" }} />
       </div>
 
 
