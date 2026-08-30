@@ -72,8 +72,7 @@ function AIAssistant() {
         ...prev,
         {
           role: "ai",
-          content:
-            "Sorry, I couldn't process your request right now.",
+          content: error.message || "Sorry, I couldn't process your request right now.",
         },
       ]);
     } finally {

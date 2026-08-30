@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from google import genai
+from google.genai.errors import APIError
 
 from transactions.models import (
     Transaction,
@@ -431,9 +432,7 @@ on the financial data above.
             )
 
             response = client.models.generate_content(
-
-                model="gemini-3.6-flash",
-
+                model="gemini-2.5-flash",
                 contents=financial_context
             )
 
@@ -470,17 +469,23 @@ on the financial data above.
             })
 
 
+        except APIError as e:
+            print("Gemini API Error:", e.message)
+            msg = "AI service is temporarily unavailable."
+            if e.code in (401, 403):
+                msg = "AI service configuration error."
+            elif e.code == 429:
+                msg = "AI service is currently busy. Please try again later."
+            elif e.code == 400:
+                msg = "Invalid AI request."
+            elif e.code == 404:
+                msg = "AI service configuration error (Model not found)."
+            
+            return Response({"error": msg}, status=500)
+
         except Exception as error:
-
-            print(
-                "Gemini error:",
-                error
-            )
-
+            print("Gemini unexpected error:", error)
             return Response(
-                {
-                    "error":
-                        "AI service failed."
-                },
+                {"error": "AI service is temporarily unavailable."},
                 status=500
             )
