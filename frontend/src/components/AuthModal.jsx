@@ -9,7 +9,7 @@ import {
 import { auth } from "../firebase";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  import.meta.env.VITE_API_URL || "https://finwise-utv7.onrender.com";
 
 
 function AuthModal({ onClose, onLoginSuccess }) {

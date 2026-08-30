@@ -234,6 +234,8 @@ CORS_ALLOWED_ORIGINS = _cors_prod + [
     # Production backend — always allow self-origin calls
     "https://finwise-utv7.onrender.com",
     "https://finwise-gilt-rho.vercel.app",
+    "https://finwisefinance.me",
+    "https://www.finwisefinance.me",
 ]
 
 
@@ -251,6 +253,8 @@ _csrf_from_env = [o.strip() for o in _csrf_env.split(",") if o.strip()]
 CSRF_TRUSTED_ORIGINS = list({
     "https://finwise-utv7.onrender.com",
     "https://finwise-gilt-rho.vercel.app",
+    "https://finwisefinance.me",
+    "https://www.finwisefinance.me",
     *_csrf_from_env,
 })
 
