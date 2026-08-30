@@ -488,8 +488,14 @@ on the financial data above.
             
             if err_code in (401, 403):
                 msg = "AI service configuration error."
-            elif err_code == 429:
-                msg = "AI service is currently busy. Please try again later."
+            elif err_code == 429 or "quota" in err_msg.lower() or "resource_exhausted" in err_msg.lower() or "free_tier_requests" in err_msg.lower():
+                return Response(
+                    {
+                        "error": "DAILY_QUOTA_EXCEEDED",
+                        "message": "Finwise AI has reached today's free usage limit. AI will be available again after the daily quota resets."
+                    },
+                    status=429,
+                )
             elif err_code == 400:
                 msg = "Invalid AI request."
             elif err_code == 404:

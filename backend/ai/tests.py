@@ -95,8 +95,9 @@ class AIAssistantTests(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {"message": "Hello"})
         
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.data["error"], "AI service is currently busy. Please try again later.")
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertEqual(response.data["error"], "DAILY_QUOTA_EXCEEDED")
+        self.assertEqual(response.data["message"], "Finwise AI has reached today's free usage limit. AI will be available again after the daily quota resets.")
 
     @patch("ai.views.genai.Client")
     def test_gemini_unexpected_error(self, MockClient):

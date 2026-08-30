@@ -52,6 +52,9 @@ function AIAssistant() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429 && data.error === "DAILY_QUOTA_EXCEEDED") {
+          throw new Error(data.message);
+        }
         throw new Error(
           data.error || "AI request failed."
         );
