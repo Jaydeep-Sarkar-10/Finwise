@@ -440,6 +440,13 @@ on the financial data above.
             )
 
 
+            try:
+                reply_text = response.text
+            except ValueError:
+                # This happens if the model response was blocked by safety filters
+                # or if it unexpectedly returned a function call instead of text.
+                reply_text = "I'm sorry, I cannot provide financial advice or an answer for this specific query."
+
             # =====================================================
             # 12. RETURN RESPONSE
             # =====================================================
@@ -447,7 +454,7 @@ on the financial data above.
             return Response({
 
                 "reply":
-                    response.text,
+                    reply_text,
 
                 "financial_data": {
 

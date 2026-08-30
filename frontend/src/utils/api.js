@@ -61,6 +61,8 @@ export const apiFetch = async (url, options = {}) => {
         localStorage.removeItem("access");
         localStorage.removeItem("refresh");
         localStorage.removeItem("user");
+        
+        window.location.href = "/";
 
         return response;
       }

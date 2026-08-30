@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, PropertyMock
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -114,3 +114,26 @@ class AIAssistantTests(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.data["error"], "AI service is temporarily unavailable.")
+
+    @patch("ai.views.genai.Client")
+    def test_gemini_value_error(self, MockClient):
+        """Test handling of ValueError when response.text is accessed (e.g. safety block)."""
+        mock_client_instance = MagicMock()
+        MockClient.return_value = mock_client_instance
+        
+        mock_chat_instance = MagicMock()
+        mock_client_instance.chats.create.return_value = mock_chat_instance
+        
+        mock_response = MagicMock()
+        # Simulate ValueError when accessing .text
+        type(mock_response).text = PropertyMock(side_effect=ValueError("Content has no text"))
+        mock_chat_instance.send_message.return_value = mock_response
+        
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, {"message": "Can I buy a keyboard?"})
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["reply"],
+            "I'm sorry, I cannot provide financial advice or an answer for this specific query."
+        )
