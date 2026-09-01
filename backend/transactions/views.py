@@ -411,19 +411,41 @@ class SavingsDetailView(
 # BUDGET LIST + CREATE
 # =========================
 
+def rollover_budgets(user):
+    today = date.today()
+    current_month = date(today.year, today.month, 1)
+
+    last_budget = Budget.objects.filter(user=user, month__lt=current_month).order_by('-month').first()
+    if not last_budget:
+        return
+
+    prev_month = last_budget.month
+    prev_budgets = Budget.objects.filter(user=user, month=prev_month)
+    
+    for pb in prev_budgets:
+        Budget.objects.get_or_create(
+            user=user,
+            category=pb.category,
+            month=current_month,
+            defaults={'amount': pb.amount}
+        )
+
 class BudgetListCreateView(generics.ListCreateAPIView):
     serializer_class = BudgetSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
+        rollover_budgets(user)
+        today = date.today()
+        current_month = date(today.year, today.month, 1)
 
         budgets = Budget.objects.filter(
-            user=user
+            user=user,
+            month=current_month
         ).select_related(
             "category"
         ).order_by(
-            "-month",
             "category__name"
         )
 
@@ -436,13 +458,16 @@ class BudgetListCreateView(generics.ListCreateAPIView):
 
     def list(self, request, *args, **kwargs):
         user = request.user
+        rollover_budgets(user)
+        today = date.today()
+        current_month = date(today.year, today.month, 1)
 
         budgets = Budget.objects.filter(
-            user=user
+            user=user,
+            month=current_month
         ).select_related(
             "category"
         ).order_by(
-            "-month",
             "category__name"
         )
 
@@ -640,6 +665,7 @@ class ReportsView(APIView):
 
     def get(self, request):
         user = request.user
+        rollover_budgets(user)
         month_param = request.query_params.get("month")
         year, month, month_str, start_date, end_date = parse_month_param(month_param)
         prev_year, prev_month, prev_month_str, prev_start_date, prev_end_date = get_prev_month_range(year, month)

@@ -98,6 +98,9 @@ class Budget(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        unique_together = ('user', 'category', 'month')
+
     def __str__(self):
         return (
             f"{self.user.username} - "
