@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Analytics } from '@vercel/analytics/react';
 
 import { apiFetch } from "./utils/api";
 
@@ -465,6 +466,7 @@ if (!user) {
           onLoginSuccess={handleLoginSuccess}
         />
       )}
+      <Analytics />
     </>
   );
 }
@@ -959,6 +961,7 @@ return (
 
       </main>
 
+      <Analytics />
     </div>
   );
 }
