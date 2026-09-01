@@ -160,6 +160,7 @@ const [editingSavingsId, setEditingSavingsId] =
           expenses: Number(data.expenses || 0),
           savings: Number(data.savings || 0),
           monthly_balance: Number(data.monthly_balance || 0),
+          available_months: data.available_months || [],
         });
       } catch (error) {
         console.error(
@@ -571,6 +572,7 @@ return (
               <MonthSelector
                 selectedMonth={selectedMonth}
                 onChangeMonth={setSelectedMonth}
+                availableMonths={summary.available_months || []}
               />
             </div>
 

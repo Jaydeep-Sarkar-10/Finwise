@@ -252,6 +252,12 @@ class FinancialSummaryView(APIView):
             - monthly_savings
         )
 
+        # =========================
+        # AVAILABLE MONTHS (ALL 12 MONTHS OF THE YEAR)
+        # =========================
+        # Generate 12 months for the selected year (e.g., 2026-12, 2026-11, ... 2026-01)
+        available_months = [f"{year:04d}-{m:02d}" for m in range(12, 0, -1)]
+
         return Response({
             "month": month_str,
             "total_balance": total_balance,
@@ -262,6 +268,7 @@ class FinancialSummaryView(APIView):
             "all_time_income": all_time_income,
             "all_time_expenses": all_time_expenses,
             "total_savings": total_savings,
+            "available_months": available_months,
         })
 
 
