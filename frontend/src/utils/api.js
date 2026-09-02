@@ -1,5 +1,10 @@
-const API_BASE_URL =
+let API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://finwise-utv7.onrender.com";
+
+// Force HTTPS for production URLs to prevent 301 redirects that strip the Authorization header
+if (API_BASE_URL.startsWith("http://") && !API_BASE_URL.includes("localhost") && !API_BASE_URL.includes("127.0.0.1")) {
+  API_BASE_URL = API_BASE_URL.replace("http://", "https://");
+}
 
 export const apiFetch = async (url, options = {}) => {
   let accessToken = localStorage.getItem("access");
