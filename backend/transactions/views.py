@@ -404,13 +404,6 @@ class SavingsDetailView(
         # Save the record being edited
         savings = serializer.save()
 
-        # Delete all other savings records
-        Savings.objects.filter(
-            user=user
-        ).exclude(
-            id=savings.id
-        ).delete()
-
         # Check notifications after editing savings
         check_all_notifications(user)
 

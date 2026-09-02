@@ -109,6 +109,7 @@ const [editingSavingsId, setEditingSavingsId] =
     income: 0,
     expenses: 0,
     savings: 0,
+    total_savings: 0,
     monthly_balance: 0,
   });
 
@@ -130,6 +131,7 @@ const [editingSavingsId, setEditingSavingsId] =
           income: 0,
           expenses: 0,
           savings: 0,
+          total_savings: 0,
           monthly_balance: 0,
         });
 
@@ -159,6 +161,7 @@ const [editingSavingsId, setEditingSavingsId] =
           income: Number(data.income || 0),
           expenses: Number(data.expenses || 0),
           savings: Number(data.savings || 0),
+          total_savings: Number(data.total_savings || 0),
           monthly_balance: Number(data.monthly_balance || 0),
           available_months: data.available_months || [],
         });
@@ -173,6 +176,7 @@ const [editingSavingsId, setEditingSavingsId] =
           income: 0,
           expenses: 0,
           savings: 0,
+          total_savings: 0,
           monthly_balance: 0,
         });
       } finally {
@@ -633,12 +637,12 @@ return (
               {/* SAVINGS */}
 
               <StatCard
-  title="Monthly Savings"
+  title="Total Savings"
   amount={
     loadingSummary
       ? "Loading..."
       : `₹${Number(
-          summary.savings
+          summary.total_savings
         ).toLocaleString("en-IN")}`
   }
   type="savings"
@@ -787,7 +791,7 @@ return (
               >
                 Current savings: ₹
                 {Number(
-                  summary.savings || 0
+                  summary.total_savings || 0
                 ).toLocaleString(
                   "en-IN"
                 )}
