@@ -832,6 +832,26 @@ function LandingPage({ onGetStarted, onLogin }) {
 
 
       {/* =====================================================
+          ABOUT
+      ===================================================== */}
+
+      <section id="landing-about" className="landing-section" style={{ padding: '80px 20px', textAlign: 'center' }}>
+        <div className="landing-section-heading" style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <div className="landing-section-label">About Finwise</div>
+          <h2>
+            Built to help you
+            <span> succeed.</span>
+          </h2>
+          <p style={{ marginTop: '24px', lineHeight: '1.6', fontSize: '1.1rem' }}>
+            Finwise is an AI-powered personal finance manager designed to help users track income and expenses, manage budgets, monitor savings, manage financial goals, and gain useful insights into their financial habits.
+          </p>
+          <p style={{ marginTop: '16px', lineHeight: '1.6', fontSize: '1.1rem' }}>
+            Built by <strong>Jaydeep Sarkar</strong>, a Computer Science student and developer interested in backend development, AI, and building practical software products.
+          </p>
+        </div>
+      </section>
+
+      {/* =====================================================
           CTA
       ===================================================== */}
 
@@ -953,14 +973,20 @@ function LandingPage({ onGetStarted, onLogin }) {
 
         <div className="landing-footer-bottom">
 
-          <span>
-            © {new Date().getFullYear()} Jaydeep Sarkar. All rights reserved.
+          <span style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span>© {new Date().getFullYear()} Jaydeep Sarkar. All rights reserved.</span>
+            <span style={{ color: '#888', fontSize: '0.9em' }}>Finwise is an AI-powered personal finance manager built by Jaydeep Sarkar.</span>
           </span>
 
-          <span style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            Contact: 
+          <span style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <a href="https://github.com/Jaydeep-Sarkar-10" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+              GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/jaydeep-sarkar-5b1a47374/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+              LinkedIn
+            </a>
             <a href="mailto:jaydeepsarkar5050@gmail.com" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
-              jaydeepsarkar5050@gmail.com
+              Email
             </a>
           </span>
 
