@@ -19,6 +19,7 @@ import ReportsPage from "./components/ReportsPage";
 import Notifications from "./components/Notifications";
 import AIAssistant from "./components/AIAssistant";
 import MonthSelector from "./components/MonthSelector";
+import MobileBackHeader from "./components/MobileBackHeader";
 
 import LandingPage from "./components/LandingPage";
 
@@ -76,6 +77,20 @@ const [editingSavingsId, setEditingSavingsId] =
   // =========================
 
   const [currentPage, setCurrentPage] = useState("home");
+
+  const getPageTitle = (page) => {
+    switch (page) {
+      case "profile": return "Profile";
+      case "transactions": return "Transactions";
+      case "categories": return "Categories";
+      case "budgets": return "Budgets";
+      case "goals": return "Goals";
+      case "reports": return "Reports";
+      case "notifications": return "Notifications";
+      case "ai": return "AI Chat";
+      default: return "";
+    }
+  };
 
   // =========================
   // REFRESH TRIGGER
@@ -496,6 +511,13 @@ return (
 />
 
       <main className="main-content">
+
+        {currentPage !== "home" && (
+          <MobileBackHeader 
+            title={getPageTitle(currentPage)} 
+            onBack={() => setCurrentPage("home")} 
+          />
+        )}
 
         {/* ========================= */}
         {/* PROFILE PAGE */}

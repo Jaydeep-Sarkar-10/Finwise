@@ -8599,4 +8599,47 @@ img {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* =========================
+   Mobile Back Header
+========================= */
+
+.mobile-back-header {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-back-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e8ebe6;
+  }
+
+  .mobile-back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e5e9e3;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #626961;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .mobile-back-btn:hover {
+    background: #f3f6f2;
+  }
+
+  .mobile-back-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #20231f;
+  }
 }
