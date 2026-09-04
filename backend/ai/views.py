@@ -434,46 +434,56 @@ on the financial data above.
                 api_key=settings.GEMINI_API_KEY
             )
 
-            primary_model = os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash")
-            fallback_model = os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-3.7-flash")
+            models_to_try = [
+                os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash"),
+                os.environ.get("GEMINI_FALLBACK_MODEL_1", "gemini-3.7-flash"),
+                os.environ.get("GEMINI_FALLBACK_MODEL_2", "gemini-3.5-flash"),
+                os.environ.get("GEMINI_FALLBACK_MODEL_3", "gemini-3.5-flash-lite"),
+            ]
 
-            try:
-                chat = client.chats.create(
-                    model=primary_model
-                )
-                response = chat.send_message(
-                    message=financial_context
-                )
-            except APIError as e:
-                err_msg = str(getattr(e, "message", str(e))).lower()
-                err_code = getattr(e, "code", None)
+            response = None
+            last_error = None
 
-                # Determine if the error is transient (e.g. rate limits, high demand, server errors)
-                is_transient = (
-                    err_code in (429, 500, 502, 503) or
-                    "demand" in err_msg or
-                    "unavailable" in err_msg or
-                    "quota" in err_msg or
-                    "resource_exhausted" in err_msg or
-                    "overloaded" in err_msg
-                )
-
-                if is_transient:
-                    print(f"Gemini primary model ({primary_model}) failed (Code: {err_code}). Attempting fallback to {fallback_model}...")
-                    
-                    # Brief pause before attempting the fallback
-                    time.sleep(0.5)
-
-                    # Any exception here will fall through to the outer except APIError block
+            for i, model_name in enumerate(models_to_try):
+                try:
                     chat = client.chats.create(
-                        model=fallback_model
+                        model=model_name
                     )
                     response = chat.send_message(
                         message=financial_context
                     )
-                else:
-                    # Re-raise non-transient errors (like 400 Bad Request, 401/403 Auth errors)
-                    raise
+                    break  # Success, exit the loop
+                except APIError as e:
+                    err_msg = str(getattr(e, "message", str(e))).lower()
+                    err_code = getattr(e, "code", None)
+
+                    # Determine if the error is transient (e.g. rate limits, high demand, server errors)
+                    is_transient = (
+                        err_code in (429, 500, 502, 503) or
+                        "demand" in err_msg or
+                        "unavailable" in err_msg or
+                        "quota" in err_msg or
+                        "resource_exhausted" in err_msg or
+                        "overloaded" in err_msg
+                    )
+
+                    last_error = e
+
+                    if is_transient:
+                        print(f"Gemini model ({model_name}) failed (Code: {err_code}).")
+                        
+                        # If there is another model to try, wait briefly before attempting
+                        if i < len(models_to_try) - 1:
+                            print(f"Attempting fallback to {models_to_try[i+1]}...")
+                            time.sleep(0.5)
+                        continue  # Try next model
+                    else:
+                        # Re-raise non-transient errors (like 400 Bad Request, 401/403 Auth errors)
+                        raise
+
+            # If all models failed with transient errors, raise the last one to be handled by the outer block
+            if response is None and last_error:
+                raise last_error
 
 
             try:
@@ -520,10 +530,12 @@ on the financial data above.
             err_code = getattr(e, "code", None)
             
             print("Gemini API Error:", err_msg)
-            msg = "AI service is temporarily unavailable."
+            msg = "AI service is temporarily unavailable. Please try again in a moment."
+            status_code = 503
             
             if err_code in (401, 403):
                 msg = "AI service configuration error."
+                status_code = 500
             elif err_code == 429 or "quota" in err_msg.lower() or "resource_exhausted" in err_msg.lower() or "free_tier_requests" in err_msg.lower():
                 return Response(
                     {
@@ -534,10 +546,12 @@ on the financial data above.
                 )
             elif err_code == 400:
                 msg = "Invalid AI request."
+                status_code = 500
             elif err_code == 404:
                 msg = "AI service configuration error (Model not found)."
+                status_code = 500
             
-            return Response({"error": msg}, status=500)
+            return Response({"error": msg}, status=status_code)
 
         except Exception as error:
             print("Gemini unexpected error:", error)
