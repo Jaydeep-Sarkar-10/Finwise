@@ -1,3 +1,6 @@
+import os
+import time
+
 from django.conf import settings
 from django.db.models import Sum
 from django.utils import timezone
@@ -431,13 +434,46 @@ on the financial data above.
                 api_key=settings.GEMINI_API_KEY
             )
 
-            chat = client.chats.create(
-                model="gemini-3.6-flash"
-            )
+            primary_model = os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash")
+            fallback_model = os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-3.7-flash")
 
-            response = chat.send_message(
-                message=financial_context
-            )
+            try:
+                chat = client.chats.create(
+                    model=primary_model
+                )
+                response = chat.send_message(
+                    message=financial_context
+                )
+            except APIError as e:
+                err_msg = getattr(e, "message", str(e)).lower()
+                err_code = getattr(e, "code", None)
+
+                # Determine if the error is transient (e.g. rate limits, high demand, server errors)
+                is_transient = (
+                    err_code in (429, 500, 502, 503) or
+                    "demand" in err_msg or
+                    "unavailable" in err_msg or
+                    "quota" in err_msg or
+                    "resource_exhausted" in err_msg or
+                    "overloaded" in err_msg
+                )
+
+                if is_transient:
+                    print(f"Gemini primary model ({primary_model}) failed (Code: {err_code}). Attempting fallback to {fallback_model}...")
+                    
+                    # Brief pause before attempting the fallback
+                    time.sleep(0.5)
+
+                    # Any exception here will fall through to the outer except APIError block
+                    chat = client.chats.create(
+                        model=fallback_model
+                    )
+                    response = chat.send_message(
+                        message=financial_context
+                    )
+                else:
+                    # Re-raise non-transient errors (like 400 Bad Request, 401/403 Auth errors)
+                    raise
 
 
             try:
