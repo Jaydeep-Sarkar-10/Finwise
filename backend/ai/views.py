@@ -445,7 +445,7 @@ on the financial data above.
                     message=financial_context
                 )
             except APIError as e:
-                err_msg = getattr(e, "message", str(e)).lower()
+                err_msg = str(getattr(e, "message", str(e))).lower()
                 err_code = getattr(e, "code", None)
 
                 # Determine if the error is transient (e.g. rate limits, high demand, server errors)
@@ -516,7 +516,7 @@ on the financial data above.
 
 
         except APIError as e:
-            err_msg = getattr(e, "message", str(e))
+            err_msg = str(getattr(e, "message", str(e)))
             err_code = getattr(e, "code", None)
             
             print("Gemini API Error:", err_msg)
