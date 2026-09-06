@@ -313,10 +313,19 @@ function AuthModal({ onClose, onLoginSuccess }) {
         error
       );
 
-      setError(
-        error.message ||
-        "Google login failed. Please try again."
-      );
+      let errorMessage = "Google login failed. Please try again.";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Google login was cancelled. Please try again.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Login popup was blocked by your browser. Please allow popups for this site.";
+      } else if (error.code === 'auth/cross-origin-opener-policy-failed') {
+        errorMessage = "A browser security policy blocked the login. Please try again, or disable strict tracking protection.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setError(errorMessage);
 
     } finally {
 

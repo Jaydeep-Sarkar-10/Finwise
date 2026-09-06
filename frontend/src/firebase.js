@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeAuth, inMemoryPersistence, browserPopupRedirectResolver } from "firebase/auth";
 
 // Firebase web configuration.
 // These values come from VITE_ environment variables.
@@ -21,6 +21,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+export const auth = initializeAuth(app, {
+  persistence: inMemoryPersistence,
+  popupRedirectResolver: browserPopupRedirectResolver
+});
 
 export default app;
