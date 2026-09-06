@@ -54,7 +54,7 @@ class Transaction(models.Model):
 
 
 class Savings(models.Model):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="savings"

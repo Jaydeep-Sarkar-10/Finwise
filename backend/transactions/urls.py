@@ -72,9 +72,10 @@ urlpatterns = [
     ),
 
     path(
-    "savings/<int:pk>/",
-    SavingsDetailView.as_view()
-),
+        "savings/me/",
+        SavingsDetailView.as_view(),
+        name="savings-detail"
+    ),
 
         path(
         "budgets/",

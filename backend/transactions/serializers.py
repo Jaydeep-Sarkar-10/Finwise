@@ -159,19 +159,12 @@ class GoalSerializer(serializers.ModelSerializer):
 
     def get_saved_amount(self, goal):
 
-        from django.db.models import Sum
         from .models import Savings
 
-        total_savings = (
-            Savings.objects
-            .filter(
-                user=goal.user
-            )
-            .aggregate(
-                total=Sum("amount")
-            )["total"]
-            or 0
-        )
+        try:
+            total_savings = Savings.objects.get(user=goal.user).amount
+        except Savings.DoesNotExist:
+            total_savings = 0
 
         return total_savings
 

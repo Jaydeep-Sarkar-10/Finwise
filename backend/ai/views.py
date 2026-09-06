@@ -76,16 +76,10 @@ class AIChatView(APIView):
             # 3. TOTAL SAVINGS
             # =====================================================
 
-            savings = (
-                Savings.objects
-                .filter(
-                    user=user
-                )
-                .aggregate(
-                    total=Sum("amount")
-                )["total"]
-                or 0
-            )
+            try:
+                savings = Savings.objects.get(user=user).amount
+            except Savings.DoesNotExist:
+                savings = 0
 
 
             # =====================================================

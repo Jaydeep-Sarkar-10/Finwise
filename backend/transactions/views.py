@@ -191,18 +191,10 @@ class FinancialSummaryView(APIView):
         # =========================
         # MONTHLY SAVINGS (Selected Month)
         # =========================
-        monthly_savings = (
-            Savings.objects
-            .filter(
-                user=user,
-                created_at__gte=start_date,
-                created_at__lt=end_date
-            )
-            .aggregate(
-                total=Sum("amount")
-            )["total"]
-            or 0
-        )
+        # With singleton Savings, we don't track monthly savings, so we can just return 0
+        # or we could return it if created this month. For simplicity, we just use 0
+        # since it's no longer a transaction-based table.
+        monthly_savings = 0
 
         # =========================
         # ALL-TIME TOTALS (Cumulative Balance)
@@ -231,14 +223,10 @@ class FinancialSummaryView(APIView):
             or 0
         )
 
-        total_savings = (
-            Savings.objects
-            .filter(user=user)
-            .aggregate(
-                total=Sum("amount")
-            )["total"]
-            or 0
-        )
+        try:
+            total_savings = Savings.objects.get(user=user).amount
+        except Savings.DoesNotExist:
+            total_savings = 0
 
         total_balance = (
             all_time_income
@@ -369,14 +357,24 @@ class SavingsListCreateView(generics.ListCreateAPIView):
         ).order_by("-created_at")
 
     def perform_create(self, serializer):
-        serializer.save(
-            user=self.request.user
-        )
+        from django.db.models import F
+        from django.db import transaction
+        
+        user = self.request.user
+        amount = serializer.validated_data.get("amount")
+
+        with transaction.atomic():
+            savings, created = Savings.objects.select_for_update().get_or_create(
+                user=user,
+                defaults={'amount': 0}
+            )
+            savings.amount = F('amount') + amount
+            savings.save(update_fields=['amount'])
+            savings.refresh_from_db()
+            serializer.instance = savings
 
         # Check notifications after savings are added
-        check_all_notifications(
-            self.request.user
-        )
+        check_all_notifications(user)
 
 
 # =========================
@@ -389,10 +387,12 @@ class SavingsDetailView(
     serializer_class = SavingsSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return Savings.objects.filter(
-            user=self.request.user
-        )
+    def get_object(self):
+        from rest_framework.exceptions import NotFound
+        try:
+            return Savings.objects.get(user=self.request.user)
+        except Savings.DoesNotExist:
+            raise NotFound("Savings record not found.")
 
     def perform_update(self, serializer):
 
@@ -701,18 +701,8 @@ class ReportsView(APIView):
             or 0
         )
 
-        savings = (
-            Savings.objects
-            .filter(
-                user=user,
-                created_at__gte=start_date,
-                created_at__lt=end_date
-            )
-            .aggregate(
-                total=Sum("amount")
-            )["total"]
-            or 0
-        )
+        # Since Savings is now a singleton, tracking monthly savings is not directly supported via created_at
+        savings = 0
 
         balance = income - expenses - savings
 
@@ -753,18 +743,7 @@ class ReportsView(APIView):
             or 0
         )
 
-        prev_savings = (
-            Savings.objects
-            .filter(
-                user=user,
-                created_at__gte=prev_start_date,
-                created_at__lt=prev_end_date
-            )
-            .aggregate(
-                total=Sum("amount")
-            )["total"]
-            or 0
-        )
+        prev_savings = 0
 
         prev_balance = prev_income - prev_expenses - prev_savings
 

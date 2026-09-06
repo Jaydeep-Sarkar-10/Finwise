@@ -155,14 +155,10 @@ def check_goal_notifications(user):
         user=user
     )
 
-    total_savings = (
-        Savings.objects
-        .filter(user=user)
-        .aggregate(
-            total=Sum("amount")
-        )["total"]
-        or 0
-    )
+    try:
+        total_savings = Savings.objects.get(user=user).amount
+    except Savings.DoesNotExist:
+        total_savings = 0
 
     today = date.today()
 

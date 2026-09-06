@@ -340,7 +340,7 @@ const [editingSavingsId, setEditingSavingsId] =
 const handleEditSavings = async () => {
   const amount = Number(savingsInput);
 
-  if (!amount || amount <= 0) {
+  if (isNaN(amount) || amount < 0 || savingsInput === "") {
     alert("Please enter a valid savings amount.");
     return;
   }
@@ -352,14 +352,9 @@ const handleEditSavings = async () => {
     return;
   }
 
-  if (!editingSavingsId) {
-    alert("Savings record not found.");
-    return;
-  }
-
   try {
     const response = await apiFetch(
-  `/api/transactions/savings/${editingSavingsId}/`,
+  `/api/transactions/savings/me/`,
   {
     method: "PATCH",
     headers: {
@@ -394,7 +389,6 @@ const handleEditSavings = async () => {
 
     // Reset
     setSavingsInput("");
-    setEditingSavingsId(null);
 
     // Close modal
     setShowEditSavingsModal(false);
@@ -414,7 +408,7 @@ const handleEditSavings = async () => {
 // OPEN EDIT SAVINGS
 // =========================
 
-const openEditSavings = async () => {
+const openEditSavings = () => {
   const token = localStorage.getItem("access");
 
   if (!token) {
@@ -422,51 +416,13 @@ const openEditSavings = async () => {
     return;
   }
 
-  try {
-    const response = await apiFetch(
-  "/api/transactions/savings/"
-);
+  // Prepopulate the input with the current total savings
+  setSavingsInput(
+    summary.total_savings ? summary.total_savings.toString() : ""
+  );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch savings");
-    }
-
-    const data = await response.json();
-
-    const savingsList = Array.isArray(data)
-      ? data
-      : data.results || [];
-
-    if (savingsList.length === 0) {
-      alert("No savings record found.");
-      return;
-    }
-
-    // Use the latest savings record for editing
-    const latestSavings = savingsList.sort(
-      (a, b) =>
-        new Date(b.created_at) -
-        new Date(a.created_at)
-    )[0];
-
-    // Store ONLY the ID.
-    // Do NOT put the existing amount in the input.
-    setEditingSavingsId(latestSavings.id);
-
-    // Empty input
-    setSavingsInput("");
-
-    // Open modal
-    setShowEditSavingsModal(true);
-
-  } catch (error) {
-    console.error(
-      "Open edit savings error:",
-      error
-    );
-
-    alert("Could not load savings.");
-  }
+  // Open modal
+  setShowEditSavingsModal(true);
 };
   // =========================
 // RENDER
@@ -890,7 +846,6 @@ return (
           onClick={() => {
             setShowEditSavingsModal(false);
             setSavingsInput("");
-            setEditingSavingsId(null);
           }}
         >
           ×
@@ -942,7 +897,6 @@ return (
           onClick={() => {
             setShowEditSavingsModal(false);
             setSavingsInput("");
-            setEditingSavingsId(null);
           }}
         >
           Cancel
