@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Analytics } from '@vercel/analytics/react';
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import { apiFetch } from "./utils/api";
 
@@ -25,6 +26,7 @@ import MobileBackHeader from "./components/MobileBackHeader";
 import LandingPage from "./components/LandingPage";
 
 function App() {
+  const navigate = useNavigate();
   
   // =========================
   // TRANSACTION MODAL
@@ -213,6 +215,7 @@ const [editingSavingsId, setEditingSavingsId] =
 
     // Refresh dashboard after login
     setRefreshTrigger((prev) => prev + 1);
+    navigate("/dashboard");
   };
 
   // =========================
@@ -234,6 +237,7 @@ const [editingSavingsId, setEditingSavingsId] =
     });
 
     setCurrentPage("home");
+    navigate("/");
   };
 
   // =========================
@@ -429,8 +433,7 @@ const openEditSavings = () => {
 // RENDER
 // =========================
 
-if (!user) {
-  return (
+  const landingContent = (
     <>
       <LandingPage
         onGetStarted={() => setShowAuthModal(true)}
@@ -445,10 +448,9 @@ if (!user) {
       <Analytics />
     </>
   );
-}
 
-return (
-  <div className="app">
+  const dashboardContent = (
+    <div className="app">
 
       {/* ========================= */}
       {/* SIDEBAR */}
@@ -945,6 +947,20 @@ return (
 
       <Analytics />
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={user ? <Navigate to="/dashboard" replace /> : landingContent}
+      />
+      <Route
+        path="/dashboard"
+        element={user ? dashboardContent : <Navigate to="/" replace />}
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
