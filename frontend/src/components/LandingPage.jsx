@@ -848,6 +848,17 @@ function LandingPage({ onGetStarted, onLogin }) {
           <p style={{ marginTop: '16px', lineHeight: '1.6', fontSize: '1.1rem' }}>
             Built by <strong>Jaydeep Sarkar</strong>, a Computer Science student and developer interested in backend development, AI, and building practical software products.
           </p>
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <a href="https://github.com/Jaydeep-Sarkar-10" target="_blank" rel="me noopener noreferrer" aria-label="Jaydeep Sarkar on GitHub" style={{ color: '#278243', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+              Jaydeep Sarkar on GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/jaydeep-sarkar-5b1a47374/" target="_blank" rel="me noopener noreferrer" aria-label="Jaydeep Sarkar on LinkedIn" style={{ color: '#278243', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+              Jaydeep Sarkar on LinkedIn
+            </a>
+            <a href="mailto:jaydeepsarkar5050@gmail.com" style={{ color: '#278243', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+              Email Jaydeep Sarkar
+            </a>
+          </div>
         </div>
       </section>
 
@@ -979,10 +990,10 @@ function LandingPage({ onGetStarted, onLogin }) {
           </span>
 
           <span style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <a href="https://github.com/Jaydeep-Sarkar-10" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+            <a href="https://github.com/Jaydeep-Sarkar-10" target="_blank" rel="me noopener noreferrer" aria-label="Jaydeep Sarkar on GitHub" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
               GitHub
             </a>
-            <a href="https://www.linkedin.com/in/jaydeep-sarkar-5b1a47374/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+            <a href="https://www.linkedin.com/in/jaydeep-sarkar-5b1a47374/" target="_blank" rel="me noopener noreferrer" aria-label="Jaydeep Sarkar on LinkedIn" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
               LinkedIn
             </a>
             <a href="mailto:jaydeepsarkar5050@gmail.com" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
